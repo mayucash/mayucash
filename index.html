@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MayuCash</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { 
+            --bg-body: #f4f6f8;
+            --bg-card: #ffffff;
+            --bg-hero-main: #cccccc; 
+            --bg-stat-green: #4ca75b; 
+            --bg-stat-red: #ef5350;   
+            --bg-stat-yellow: #eeb83e; 
+            --text-dark: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border-color: #eaeded;
+            --primary-btn: #2c3e50;
+        }
+
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-body); margin: 0; padding: 20px; color: var(--text-dark); padding-bottom: 80px; }
+        .container { max-width: 1100px; margin: auto; }
+        .hidden { display: none !important; }
+
+        /* PANTALLAS (Auth y Onboarding) */
+        .auth-container { max-width: 450px; margin: 60px auto; background: var(--bg-card); padding: 35px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; }
+        .auth-container h2 { margin-top: 0; margin-bottom: 10px; font-weight: 700; }
+        .auth-form { display: flex; flex-direction: column; gap: 15px; text-align: left; }
+        .auth-form label { font-size: 0.85em; font-weight: 600; color: var(--text-muted); margin-bottom: -10px; }
+        .auth-form input, .auth-form select { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .auth-btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        .auth-btn-group button { flex: 1; height: 42px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; color: white; transition: opacity 0.2s; }
+        .auth-btn-group button:hover { opacity: 0.9; }
+        .btn-auth-main { background: var(--primary-btn); }
+        .btn-secondary { background: #7f8c8d !important; }
+
+        /* MODAL (Configuración) */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--bg-card); padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .modal-content h3 { margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+
+        /* ENCABEZADO */
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+        .header-title { font-size: 1.4em; font-weight: 700; margin: 0; }
+        .controls-flex { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .btn-icon { background: var(--bg-card); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 1.1em; transition: 0.2s; }
+        .btn-icon:hover { background: #f0f2f5; }
+        select, input { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 14px; background: var(--bg-card); color: var(--text-dark); outline: none; height: 42px; }
+
+        /* HERO CARDS */
+        .hero-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .hero-card { background: var(--bg-hero-main); border-radius: 16px; padding: 25px; color: white; }
+        .hero-label { font-size: 0.85em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .hero-main-amount { font-size: 3em; font-weight: 800; margin-bottom: 20px; line-height: 1; }
+        .hero-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .hero-stat { display: flex; flex-direction: column; padding: 15px 12px; border-radius: 12px; text-align: left; align-items: flex-start; }
+        .hero-stat-label { font-size: 0.7em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .hero-stat-value { font-size: 1.2em; font-weight: 800; white-space: nowrap; }
+        .bg-verde-stat { background-color: var(--bg-stat-green); }
+        .bg-rojo-stat { background-color: var(--bg-stat-red); }
+        .bg-amarillo-stat { background-color: var(--bg-stat-yellow); }
+
+        @media (max-width: 850px) { 
+            .hero-summary { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; margin: 0 -20px 25px -20px; padding: 0 20px 10px 20px; -webkit-overflow-scrolling: touch; }
+            .hero-summary::-webkit-scrollbar { display: none; }
+            .hero-card { flex: 0 0 92%; scroll-snap-align: center; padding: 20px; }
+            .hero-main-amount { font-size: 2.5em; }
+            .hero-stat { padding: 12px 10px; }
+            .hero-stat-value { font-size: 1.1em; }
+        }
+
+        /* SECCIONES Y DRAG & DROP */
+        .section { background: var(--bg-card); padding: 22px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color); position: relative; }
+        .section-header { margin-top: 0; margin-bottom: 18px; font-size: 1.1em; color: var(--text-dark); font-weight: 600; padding-bottom: 8px; border-bottom: 2px solid var(--border-color); }
+        .accounts-bar { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; }
+        .account-pill { position: relative; min-width: 120px; padding: 10px 12px; border-radius: 8px; background: #f8f9fa; border: 2px solid var(--border-color); flex-shrink: 0; cursor: grab; transition: transform 0.2s; }
+        .account-pill:active { cursor: grabbing; }
+        .account-pill.dragging { opacity: 0.4; transform: scale(0.95); }
+        .account-pill.drag-over { border-color: var(--primary-btn); background: #fdfdfd; border-style: dashed; }
+        .account-pill .name { font-size: 0.7em; color: var(--text-muted); font-weight: 600; text-transform: uppercase; pointer-events: none; }
+        .account-pill .val { font-size: 1.05em; font-weight: 700; display: block; color: var(--text-dark); pointer-events: none; }
+        .btn-delete-wallet { position: absolute; top: 2px; right: 2px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 10px; padding: 2px 4px; z-index: 10; }
+        .btn-delete-wallet:hover { color: var(--bg-stat-red); }
+
+        /* FORMULARIOS Y TABLAS */
+        #finance-form, #wallet-form, #budget-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1 1 110px; }
+        .form-group label { font-size: 0.8em; color: var(--text-muted); font-weight: 600; }
+        button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 0 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; }
+        button.btn-primary:hover { opacity: 0.9; }
+        
+        .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 0.8em; color: var(--text-muted); font-weight: 600; }
+        td { padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 0.9em; }
+        .btn-table { border: 1px solid var(--border-color); background: #f8f9fa; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-right: 4px;}
+        .btn-table:hover { background: #eaeded; }
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 0.9em; background: #f8f9fa; padding: 10px; border-radius: 8px; }
+        .btn-page { background: #fff; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .bottom-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 850px) { .bottom-layout { grid-template-columns: 1fr; } }
+        .budget-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 10px; background: #fff; }
+        .progress-container { background: #eee; border-radius: 4px; height: 8px; margin: 8px 0; overflow: hidden; }
+        .progress-bar { height: 100%; transition: width 0.3s; }
+        .projection-list { margin-top: 15px; font-size: 0.85em; background: #f8f9fa; padding: 10px; border-radius: 8px; }
+        .projection-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #ccc; }
+        .text-green { color: #2ecc71; font-weight: bold; }
+        .text-red { color: #e74c3c; font-weight: bold; }
+        .chart-wrapper { position: relative; height: 250px; width: 100%; margin-bottom: 10px; }
+        
+        .sync-badge { font-size: 0.75em; padding: 4px 8px; border-radius: 12px; font-weight: bold; margin-left: 10px; }
+        .sync-online { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .sync-offline { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
+        /* BOTÓN FLOTANTE DEL MICRÓFONO (FAB) */
+        .fab-mic {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-btn);
+            color: white;
+            font-size: 26px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .fab-mic:hover { transform: scale(1.05); }
+        .fab-mic.recording {
+            background: var(--bg-stat-red);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(239, 83, 80, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 83, 80, 0); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="auth-screen" class="auth-container hidden">
+    <h2>🔑 Acceso a MayuCash</h2>
+    <form id="auth-form" class="auth-form" onsubmit="event.preventDefault(); window.loginUser();">
+        <input type="email" id="auth-email" placeholder="Correo Electrónico" required>
+        <input type="password" id="auth-password" placeholder="Contraseña" minlength="6" required>
+        <div class="auth-btn-group">
+            <button type="submit" class="btn-auth-main">Ingresar</button>
+            <button type="button" class="btn-secondary" onclick="window.registerUser()">Registrarse</button>
+        </div>
+    </form>
+</div>
+
+<div id="onboarding-screen" class="auth-container hidden" style="max-width: 500px;">
+    <h2>🚀 ¡Te damos la bienvenida!</h2>
+    <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 25px; line-height: 1.4;">Configuremos tu entorno financiero. No te preocupes, podrás cambiar todo esto después.</p>
+    
+    <form id="onboarding-form" class="auth-form" onsubmit="event.preventDefault(); window.completeOnboarding();">
+        <label>¿Cómo usarás MayuCash?</label>
+        <select id="ob-type" required>
+            <option value="Personales">Finanzas Personales</option>
+            <option value="Hogar">Finanzas del Hogar</option>
+            <option value="Negocio">Finanzas de Negocio</option>
+        </select>
+
+        <label>Selecciona tus Monedas (Máx. 3)</label>
+        <select id="ob-currencies" multiple required style="height: 120px;" onchange="window.limitCurrencies(this)">
+            <option value="CLP" selected>CLP - Peso Chileno</option>
+            <option value="USD" selected>USD - Dólar Estadounidense</option>
+            <option value="EUR">EUR - Euro</option>
+            <option value="MXN">MXN - Peso Mexicano</option>
+            <option value="COP">COP - Peso Colombiano</option>
+            <option value="ARS">ARS - Peso Argentino</option>
+            <option value="PEN">PEN - Sol Peruano</option>
+            <option value="BRL">BRL - Real Brasileño</option>
+            <option value="VES">VES - Bolívar Venezolano</option>
+            <option value="GBP">GBP - Libra Esterlina</option>
+            <option value="USDT">USDT - Crypto (Tether)</option>
+            <option value="BTC">BTC - Bitcoin</option>
+        </select>
+        <small id="ob-curr-warning" style="color:var(--bg-stat-red); display:none; margin-top:-10px;">Solo puedes elegir un máximo de 3 monedas.</small>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
+        <h4 style="margin: 0; text-align: center; color: var(--text-dark);">Crea tus 2 primeras cuentas</h4>
+        
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="ob-acc1-name" placeholder="Ej: Cuenta Principal" required style="flex:2">
+            <input type="number" id="ob-acc1-bal" placeholder="Saldo" required style="flex:1">
+        </div>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="ob-acc2-name" placeholder="Ej: Ahorros / Efectivo" required style="flex:2">
+            <input type="number" id="ob-acc2-bal" placeholder="Saldo" required style="flex:1">
+        </div>
+
+        <button type="submit" class="btn-primary" style="margin-top: 15px; width: 100%;">¡Comenzar a usar la App!</button>
+    </form>
+</div>
+
+<div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h3>⚙️ Configuración del Perfil</h3>
+        <form class="auth-form" onsubmit="event.preventDefault(); window.saveSettings();">
+            <label>Tipo de Finanzas</label>
+            <select id="set-type" required>
+                <option value="Personales">Personales</option>
+                <option value="Hogar">Hogar</option>
+                <option value="Negocio">Negocio</option>
+            </select>
+
+            <label>Monedas Habilitadas (Máx. 3)</label>
+            <select id="set-currencies" multiple required style="height: 120px;" onchange="window.limitCurrencies(this, 'set-curr-warning')">
+                <option value="CLP">CLP - Peso Chileno</option>
+                <option value="USD">USD - Dólar Estadounidense</option>
+                <option value="EUR">EUR - Euro</option>
+                <option value="MXN">MXN - Peso Mexicano</option>
+                <option value="COP">COP - Peso Colombiano</option>
+                <option value="ARS">ARS - Peso Argentino</option>
+                <option value="PEN">PEN - Sol Peruano</option>
+                <option value="BRL">BRL - Real Brasileño</option>
+                <option value="VES">VES - Bolívar Venezolano</option>
+                <option value="GBP">GBP - Libra Esterlina</option>
+                <option value="USDT">USDT - Crypto (Tether)</option>
+                <option value="BTC">BTC - Bitcoin</option>
+            </select>
+            <small id="set-curr-warning" style="color:var(--bg-stat-red); display:none; margin-top:-10px;">Solo 3 monedas permitidas.</small>
+
+            <label>Cuenta Principal (Para dictado por voz)</label>
+            <select id="set-main-wallet" required></select>
+
+            <div class="auth-btn-group" style="margin-top: 20px;">
+                <button type="button" class="btn-secondary" onclick="window.closeSettings()">Cancelar</button>
+                <button type="submit" class="btn-auth-main">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="main-dashboard" class="container hidden">
+    
+    <button id="fab-mic" class="fab-mic" onclick="window.toggleDictation()" title="Dictar Movimiento">🎤</button>
+
+    <div class="header-flex">
+        <h2 class="header-title" style="display:flex; align-items:center;">
+            📊 MayuCash <span id="app-profile-badge" style="font-size: 0.6em; color: var(--text-muted); font-weight: normal; margin-left: 10px;"></span>
+            <span id="sync-indicator" class="sync-badge sync-offline">Conectando...</span>
+        </h2>
+        <div class="controls-flex">
+            <button class="btn-icon" title="Configuración" onclick="window.openSettings()">⚙️</button>
+            <button id="privacy-toggle" class="btn-icon" title="Ocultar Montos" onclick="window.togglePrivacy()">👁️</button>
+            <select id="sel-month" onchange="window.updateUI()"></select>
+            <select id="sel-year" onchange="window.updateUI()"></select>
+            <button class="btn-icon" title="Cerrar Sesión" onclick="window.logoutUser()">🚪</button>
+        </div>
+    </div>
+    
+    <div class="hero-summary" id="hero-cards-container">
+        </div>
+
+    <div class="section">
+        <h3 class="section-header">Tus Cuentas (Bancos / Billeteras / Crypto)</h3>
+        <div id="accounts-bar" class="accounts-bar"></div>
+        <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <form id="wallet-form" onsubmit="event.preventDefault(); window.addWallet();">
+                <input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH, Binance..." style="flex: 2; min-width: 140px;" required>
+                <input type="number" id="new-wallet-balance" placeholder="Monto Inicial" style="flex: 1; min-width: 100px;" required>
+                <select id="new-wallet-currency" style="flex: 1; min-width: 80px;"></select>
+                <button type="submit" class="btn-primary">Crear Cuenta</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3 class="section-header">Registrar Movimiento</h3>
+        <form id="finance-form" onsubmit="event.preventDefault(); window.addEntry();">
+            <input type="hidden" id="edit-id">
+            <div class="form-group" style="flex: 2 1 120px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Sueldo, Ahorro, Arriendo..." required></div>
+            <div class="form-group" style="flex: 1 1 90px;"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
+            <div class="form-group" style="flex: 0 1 80px;">
+                <label>Moneda</label>
+                <select id="currency-select"></select>
+            </div>
+            <div class="form-group">
+                <label>Tipo</label>
+                <select id="type-select" onchange="window.handleTypeChange()">
+                    <option value="gasto">Gasto</option>
+                    <option value="ingreso">Ingreso</option>
+                    <option value="transferencia">Transferencia</option>
+                </select>
+            </div>
+            <div class="form-group" id="cat-group"><label>Categoría</label><select id="cat-select" required></select></div>
+            
+            <div class="form-group" id="freq-group">
+                <label>Frecuencia</label>
+                <select id="freq-select">
+                    <option value="ocasional">Ocasional (Una vez)</option>
+                    <option value="fijo">Fijo (Automático Mensual)</option>
+                </select>
+            </div>
+
+            <div class="form-group"><label id="lbl-wallet-orig">En la Cuenta:</label><select id="wallet-select" onchange="window.handleWalletChange(event)"></select></div>
+            <div class="form-group hidden" id="dest-group"><label>Hacia la Cuenta (Ahorro):</label><select id="wallet-dest-select"></select></div>
+            <button type="submit" class="btn-primary" id="btn-save">Guardar Registro</button>
+        </form>
+    </div>
+
+    <div class="section">
+        <h3 class="section-header">Historial de Movimientos</h3>
+        <div class="table-responsive">
+            <table id="entries-table">
+                <thead><tr><th>Cuenta</th><th>Tipo</th><th>Cat.</th><th>Nota</th><th>Monto</th><th>Acciones</th></tr></thead>
+                <tbody id="entries-body"></tbody>
+            </table>
+        </div>
+        <div class="pagination" id="pagination-controls"></div>
+    </div>
+
+    <div class="bottom-layout">
+        <div class="section">
+            <h3 class="section-header">Metas y Presupuestos</h3>
+            <form id="budget-form" onsubmit="event.preventDefault(); window.addBudget();">
+                <input type="text" id="budget-name" placeholder="Ej: Máximo Tarjetas" style="width:100%; margin-bottom:8px;" required>
+                <input type="number" id="budget-limit" placeholder="Monto Tope" style="width:100%; margin-bottom:8px;" required>
+                <select id="budget-cats-multi" multiple style="width:100%; height:80px; margin-bottom:10px;" required></select>
+                <button type="submit" class="btn-primary" style="width:100%">Crear Meta</button>
+            </form>
+            <div id="budget-list-container"></div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Predicción de Flujo a 6 Meses</h3>
+            <p style="font-size: 0.8em; color: var(--text-muted); margin-top: 0; margin-bottom: 5px;">
+                Simula Ingresos, Gastos y Transferencias "Fijas".<br>
+                <b>*Arriendo:</b> Aplica aumento compuesto IPC del 1.2% cada 3 meses.
+            </p>
+            <div class="chart-wrapper">
+                <canvas id="projectionChart"></canvas>
+            </div>
+            <div id="projection-details" class="projection-list"></div>
+            <div style="margin-top: 20px; display:flex; gap:10px;">
+                <button class="btn-primary" onclick="window.exportData()" style="flex:1; background: #607d8b;">💾 Exportar a PC</button>
+                <button class="btn-primary" onclick="document.getElementById('importFile').click()" style="flex:1; background: #607d8b;">📂 Cargar Archivo</button>
+                <input type="file" id="importFile" onchange="window.importData(event)" style="display: none;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+    // 1. LLAVES DE FIREBASE
+    const firebaseConfig = {
+        apiKey: "AIzaSyCKQpME2flx_ZY5XAv3Q79esBW9cT0JuYs",
+        authDomain: "mayucash-1ce7f.firebaseapp.com",
+        projectId: "mayucash-1ce7f",
+        storageBucket: "mayucash-1ce7f.firebasestorage.app",
+        messagingSenderId: "894170085622",
+        appId: "1:894170085622:web:30ec042a15f1395bd754d7"
+    };
+
+    let app, auth, firestore;
+    try {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        firestore = getFirestore(app);
+    } catch(e) { console.error("Error al inicializar Firebase:", e); }
+
+    let currentUser = null;
+    let realtimeUnsubscribe = null;
+    
+    // ESTRUCTURA BASE
+    let db = JSON.parse(localStorage.getItem('mayucash_local_fallback')) || null;
+
+    // CONSTANTES
+    const catGastos = ["Arriendo", "Gastos Comunes", "Luz", "Agua", "Gas", "Internet", "Móvil", "Supermercado", "Salidas/Ocio", "Compras", "Tarjetas de Crédito", "Créditos", "Pensión", "Aporte Familia", "Mascotas", "Salud", "Vacaciones", "Mantenimiento"];
+    const catIngresos = ["Salario Principal", "Ahorro", "Rendimientos/Inversión", "Ventas Extras", "Saldo Inicial"];
+    const catTransferencias = ["Ahorro", "Inversión", "Pago Tarjeta", "Movimiento Interno", "Fondo Emergencia", "Otro"];
+    let chart;
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let draggedIdx = null;
+
+    const selMonth = document.getElementById('sel-month');
+    const selYear = document.getElementById('sel-year');
+    const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    meses.forEach((m, i) => selMonth.add(new Option(m, String(i+1).padStart(2, '0'))));
+    for(let y = 2024; y <= 2035; y++) selYear.add(new Option(y, y));
+    const now = new Date();
+    selMonth.value = String(now.getMonth() + 1).padStart(2, '0');
+    selYear.value = now.getFullYear();
+
+    // ==============================================
+    // CAZA-FANTASMAS
+    // ==============================================
+    function cleanGhostEntries() {
+        if (!db || !db.months) return;
+        Object.keys(db.months).forEach(k => {
+            if(db.months[k].entries) {
+                db.months[k].entries = db.months[k].entries.filter(e => {
+                    if (e.category === 'Saldo Inicial') return db.wallets.some(w => w.name === e.wallet);
+                    return true;
+                });
+                let saldosIniciales = {};
+                for (let i = db.months[k].entries.length - 1; i >= 0; i--) {
+                    let e = db.months[k].entries[i];
+                    if (e.category === 'Saldo Inicial') {
+                        if (!saldosIniciales[e.wallet]) saldosIniciales[e.wallet] = true;
+                        else e._delete = true;
+                    }
+                }
+                db.months[k].entries = db.months[k].entries.filter(e => !e._delete);
+            }
+        });
+    }
+
+    // ==============================================
+    // EL CAZADOR DE PALABRAS (DICTADO INTELIGENTE)
+    // ==============================================
+    window.toggleDictation = function() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Tu navegador no soporta el dictado por voz. Intenta desde Google Chrome o Safari.");
+            return;
+        }
+        
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-CL'; 
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        const fab = document.getElementById('fab-mic');
+        
+        recognition.onstart = function() { fab.classList.add('recording'); };
+
+        recognition.onresult = function(event) {
+            let transcript = event.results[0][0].transcript.toLowerCase();
+            
+            // 1. Extraer el monto
+            const amountMatch = transcript.match(/\d+/);
+            const amount = amountMatch ? parseFloat(amountMatch[0]) : 0;
+            if(amount > 0) document.getElementById('amount').value = amount;
+
+            // 2. Establecer Valores por Defecto
+            let typeValue = 'gasto'; // Por defecto asumimos que es un gasto
+            let freqValue = 'ocasional';
+            
+            // Si el usuario configuró una cuenta principal, usamos esa. Si no, usamos la primera que exista.
+            let walletValue = (db.profile && db.profile.mainWallet) ? db.profile.mainWallet : (db.wallets.length > 0 ? db.wallets[0].name : '');
+            let catValue = 'Otros';
+            let descValue = transcript.trim().charAt(0).toUpperCase() + transcript.trim().slice(1);
+
+            // 3. Reglas Inteligentes (El "Cerebro")
+            if (transcript.includes('agua') || transcript.includes('luz') || transcript.includes('gas')) {
+                // Si dice agua/luz/gas y el monto es mayor a 3000, es una factura. Si es menor, es una bebida/compra.
+                if (amount > 3000) {
+                    catValue = 'Luz/Agua/Gas';
+                    freqValue = 'fijo';
+                    descValue = 'Pago de servicio (' + (transcript.includes('agua') ? 'Agua' : transcript.includes('luz') ? 'Luz' : 'Gas') + ')';
+                } else {
+                    catValue = 'Salidas/Ocio'; // O Supermercado
+                    freqValue = 'ocasional';
+                    descValue = transcript.includes('agua') ? 'Agua mineral' : descValue;
+                }
+            } else if (transcript.includes('arriendo')) {
+                catValue = 'Arriendo';
+                freqValue = 'fijo';
+            } else if (transcript.includes('sueldo') || transcript.includes('salario')) {
+                typeValue = 'ingreso';
+                catValue = 'Salario Principal';
+                freqValue = 'fijo';
+            } else if (transcript.includes('supermercado') || transcript.includes('comida')) {
+                catValue = 'Supermercado';
+            }
+
+            // 4. Buscar explícitamente si el usuario dictó una cuenta diferente a la principal
+            if(db && db.wallets) {
+                const foundWallet = db.wallets.find(w => transcript.includes(w.name.toLowerCase()));
+                if(foundWallet) walletValue = foundWallet.name;
+            }
+
+            // Aplicar los datos al formulario
+            document.getElementById('type-select').value = typeValue;
+            window.handleTypeChange(); 
+            document.getElementById('freq-select').value = freqValue;
+            document.getElementById('wallet-select').value = walletValue;
+            window.handleWalletChange({target: {value: walletValue}});
+            
+            // Retraso de 100ms para asegurar que el select de categorías se actualizó al cambiar el tipo
+            setTimeout(() => {
+                const catSelect = document.getElementById('cat-select');
+                let optionExists = Array.from(catSelect.options).some(o => o.value === catValue);
+                if(optionExists) catSelect.value = catValue;
+                document.getElementById('desc').value = descValue;
+                
+                // Mover la pantalla al formulario
+                document.getElementById('finance-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        };
+
+        recognition.onerror = function(event) {
+            fab.classList.remove('recording');
+            if(event.error !== 'no-speech') alert("Error al escuchar. Da permisos de micrófono al navegador.");
+        };
+
+        recognition.onend = function() { fab.classList.remove('recording'); };
+        recognition.start();
+    };
+
+    // ==============================================
+    // ONBOARDING & CONFIGURACIÓN
+    // ==============================================
+
+    window.limitCurrencies = function(selectObj, warningId = 'ob-curr-warning') {
+        const selected = Array.from(selectObj.selectedOptions);
+        if (selected.length > 3) {
+            document.getElementById(warningId).style.display = 'block';
+            selected[selected.length - 1].selected = false;
+        } else {
+            document.getElementById(warningId).style.display = 'none';
+        }
+    };
+
+    window.completeOnboarding = async function() {
+        const type = document.getElementById('ob-type').value;
+        const currs = Array.from(document.getElementById('ob-currencies').selectedOptions).map(o => o.value);
+        if(currs.length === 0 || currs.length > 3) return alert("Selecciona entre 1 y 3 monedas.");
+
+        const acc1Name = document.getElementById('ob-acc1-name').value.trim();
+        const acc1Bal = parseFloat(document.getElementById('ob-acc1-bal').value) || 0;
+        const acc2Name = document.getElementById('ob-acc2-name').value.trim();
+        const acc2Bal = parseFloat(document.getElementById('ob-acc2-bal').value) || 0;
+
+        db = {
+            profile: { type: type, currencies: currs, mainWallet: acc1Name },
+            wallets: [],
+            months: {},
+            privacy: false,
+            onboardingCompleted: true
+        };
+
+        const mainCurr = currs[0];
+        db.wallets.push({ name: acc1Name, currency: mainCurr });
+        db.wallets.push({ name: acc2Name, currency: mainCurr });
+
+        const key = `${selYear.value}-${selMonth.value}`;
+        db.months[key] = { entries: [], budgets: [] };
+        db.months[key].entries.push({ id: Date.now(), desc: "Saldo Inicial", amount: acc1Bal, type: 'ingreso', wallet: acc1Name, currency: mainCurr, category: 'Saldo Inicial', freq: 'ocasional' });
+        db.months[key].entries.push({ id: Date.now()+1, desc: "Saldo Inicial", amount: acc2Bal, type: 'ingreso', wallet: acc2Name, currency: mainCurr, category: 'Saldo Inicial', freq: 'ocasional' });
+
+        document.getElementById('onboarding-screen').classList.add('hidden');
+        document.getElementById('main-dashboard').classList.remove('hidden');
+        
+        window.populateCategories();
+        await window.saveDataCloud();
+    };
+
+    window.openSettings = function() {
+        if(!db || !db.profile) return;
+        document.getElementById('set-type').value = db.profile.type;
+        
+        const selCurrencies = document.getElementById('set-currencies');
+        Array.from(selCurrencies.options).forEach(opt => {
+            opt.selected = db.profile.currencies.includes(opt.value);
+        });
+
+        // Llenar selector de cuenta principal
+        const mainWalletSel = document.getElementById('set-main-wallet');
+        mainWalletSel.innerHTML = '';
+        db.wallets.forEach(w => mainWalletSel.add(new Option(w.name, w.name)));
+        if (db.profile.mainWallet) mainWalletSel.value = db.profile.mainWallet;
+
+        document.getElementById('settings-modal').classList.remove('hidden');
+    };
+
+    window.closeSettings = function() { document.getElementById('settings-modal').classList.add('hidden'); };
+
+    window.saveSettings = async function() {
+        const type = document.getElementById('set-type').value;
+        const currs = Array.from(document.getElementById('set-currencies').selectedOptions).map(o => o.value);
+        if(currs.length === 0 || currs.length > 3) return alert("Selecciona entre 1 y 3 monedas.");
+        const mainW = document.getElementById('set-main-wallet').value;
+
+        db.profile.type = type;
+        db.profile.currencies = currs;
+        db.profile.mainWallet = mainW; // Guardamos la cuenta principal
+        
+        window.closeSettings();
+        window.populateCategories();
+        await window.saveDataCloud();
+    };
+
+    // ==============================================
+    // FUNCIONES BÁSICAS (AUTH & UI)
+    // ==============================================
+
+    window.registerUser = async function() {
+        if(!auth) return alert("Firebase no conectado.");
+        const email = document.getElementById("auth-email").value;
+        const pass = document.getElementById("auth-password").value;
+        if(!email || !pass) return alert("Llena ambos campos.");
+        try { await createUserWithEmailAndPassword(auth, email, pass); alert("¡Usuario creado!"); } 
+        catch(err) { alert("Error al registrar: " + err.message); }
+    };
+
+    window.loginUser = async function() {
+        if(!auth) return alert("Firebase no conectado.");
+        const email = document.getElementById("auth-email").value;
+        const pass = document.getElementById("auth-password").value;
+        try { await signInWithEmailAndPassword(auth, email, pass); } 
+        catch(err) { alert("Error de inicio de sesión. Revisa tus datos."); }
+    };
+
+    window.logoutUser = function() { 
+        if(auth) signOut(auth); 
+        if(realtimeUnsubscribe) realtimeUnsubscribe();
+    };
+
+    window.togglePrivacy = async function() { db.privacy = !db.privacy; await window.saveDataCloud(); };
+
+    window.handleTypeChange = function() {
+        const type = document.getElementById('type-select').value;
+        const isTrf = type === 'transferencia';
+        document.getElementById('cat-group').classList.remove('hidden');
+        document.getElementById('dest-group').classList.toggle('hidden', !isTrf);
+        document.getElementById('cat-select').required = true;
+        document.getElementById('lbl-wallet-orig').innerText = isTrf ? "Origen:" : "En la Cuenta:";
+        window.populateCategories();
+    };
+
+    window.handleWalletChange = function(e) {
+        const wName = e.target.value;
+        const wallet = db.wallets.find(w => w.name === wName);
+        if(wallet) document.getElementById('currency-select').value = wallet.currency;
+    };
+
+    window.populateCategories = function() {
+        if(!db || !db.profile) return;
+
+        const currSelects = [document.getElementById('new-wallet-currency'), document.getElementById('currency-select')];
+        currSelects.forEach(sel => {
+            const currentVal = sel.value;
+            sel.innerHTML = '';
+            db.profile.currencies.forEach(c => sel.add(new Option(c, c)));
+            if(db.profile.currencies.includes(currentVal)) sel.value = currentVal;
+        });
+
+        const type = document.getElementById('type-select').value;
+        const catSelect = document.getElementById('cat-select');
+        catSelect.innerHTML = '';
+        
+        let listToUse = catGastos;
+        if (type === 'ingreso') listToUse = catIngresos;
+        if (type === 'transferencia') listToUse = catTransferencias;
+
+        listToUse.forEach(c => catSelect.add(new Option(c, c)));
+        
+        const wSelect = document.getElementById('wallet-select');
+        const dSelect = document.getElementById('wallet-dest-select');
+        wSelect.innerHTML = ''; dSelect.innerHTML = '<option value="">Hacia Cuenta...</option>';
+        
+        if(db && db.wallets) {
+            db.wallets.forEach(w => { 
+                if(w.name) { wSelect.add(new Option(`${w.name} (${w.currency})`, w.name)); dSelect.add(new Option(`${w.name} (${w.currency})`, w.name)); }
+            });
+            if(db.wallets.length > 0 && !currSelects[1].value) currSelects[1].value = db.wallets[0].currency;
+        }
+
+        const multi = document.getElementById('budget-cats-multi');
+        multi.innerHTML = '';
+        catGastos.forEach(c => multi.add(new Option(c, c)));
+        
+        document.getElementById('app-profile-badge').innerText = `(${db.profile.type})`;
+    };
+
+    // FORMULARIOS DE DATA
+    window.addWallet = async function() {
+        const name = document.getElementById('new-wallet-name').value.trim();
+        const bal = parseFloat(document.getElementById('new-wallet-balance').value) || 0;
+        const curr = document.getElementById('new-wallet-currency').value;
+
+        if(!name) return;
+        if(db.wallets.find(w => w.name.toLowerCase() === name.toLowerCase())) return alert(`La cuenta "${name}" ya existe.`);
+
+        db.wallets.push({ name, currency: curr });
+        
+        // Si no hay cuenta principal, asignamos esta
+        if (!db.profile.mainWallet) db.profile.mainWallet = name;
+
+        const key = `${selYear.value}-${selMonth.value}`;
+        if (!db.months[key]) db.months[key] = { entries: [], budgets: [] };
+        db.months[key].entries.push({ id: Date.now(), desc: "Saldo Inicial", amount: bal, type: 'ingreso', wallet: name, currency: curr, category: 'Saldo Inicial', freq: 'ocasional' });
+        
+        document.getElementById('wallet-form').reset();
+        window.populateCategories();
+        await window.saveDataCloud();
+    };
+
+    window.addEntry = async function() {
+        const key = `${selYear.value}-${selMonth.value}`;
+        if (!db.months[key]) db.months[key] = { entries: [], budgets: [] };
+        
+        const editId = document.getElementById('edit-id').value;
+        const entry = { 
+            id: editId ? parseInt(editId) : Date.now(), 
+            desc: document.getElementById('desc').value, 
+            amount: parseFloat(document.getElementById('amount').value), 
+            type: document.getElementById('type-select').value, 
+            wallet: document.getElementById('wallet-select').value, 
+            walletDest: document.getElementById('wallet-dest-select').value, 
+            category: document.getElementById('cat-select').value, 
+            freq: document.getElementById('freq-select').value || 'ocasional', 
+            currency: document.getElementById('currency-select').value 
+        };
+        
+        if(editId) { 
+            const idx = db.months[key].entries.findIndex(en => en.id === parseInt(editId)); 
+            if(idx !== -1) db.months[key].entries[idx] = entry; 
+        } else { db.months[key].entries.push(entry); }
+        
+        document.getElementById('edit-id').value = '';
+        document.getElementById('btn-save').innerText = 'Guardar Registro';
+        document.getElementById('finance-form').reset(); 
+        
+        // Resetear a cuenta principal
+        if(db.profile && db.profile.mainWallet) {
+            document.getElementById('wallet-select').value = db.profile.mainWallet;
+        }
+
+        window.handleTypeChange();
+        await window.saveDataCloud(); 
+    };
+
+    window.addBudget = async function() {
+        const name = document.getElementById('budget-name').value.trim();
+        const limit = parseFloat(document.getElementById('budget-limit').value);
+        const selectedCats = Array.from(document.getElementById('budget-cats-multi').selectedOptions).map(o => o.value);
+        if (name && limit && selectedCats.length > 0) {
+            const key = `${selYear.value}-${selMonth.value}`;
+            if (!db.months[key]) db.months[key] = { entries: [], budgets: [] };
+            db.months[key].budgets.push({ name, limit, categories: selectedCats });
+            document.getElementById('budget-form').reset();
+            await window.saveDataCloud();
+        }
+    };
+
+    // ACCIONES TABLA Y DRAG
+    window.deleteWallet = async function(name) {
+        let hasMovements = false;
+        Object.values(db.months).forEach(m => {
+            if (m.entries && m.entries.some(e => (e.wallet === name || e.walletDest === name) && e.category !== 'Saldo Inicial')) hasMovements = true;
+        });
+        if (hasMovements) { alert("Esta cuenta tiene registros asociados. Elimínalos primero."); return; }
+        
+        if(confirm(`¿Eliminar la cuenta "${name}"?`)) { 
+            db.wallets = db.wallets.filter(w => w.name !== name); 
+            Object.keys(db.months).forEach(k => {
+                if(db.months[k].entries) db.months[k].entries = db.months[k].entries.filter(e => !(e.wallet === name && e.category === 'Saldo Inicial'));
+            });
+            window.populateCategories(); 
+            await window.saveDataCloud(); 
+        }
+    };
+    window.editEntry = function(id) {
+        const key = `${selYear.value}-${selMonth.value}`;
+        const e = db.months[key].entries.find(en => en.id === id);
+        if(!e) return;
+        document.getElementById('edit-id').value = e.id;
+        document.getElementById('desc').value = e.desc;
+        document.getElementById('amount').value = e.amount;
+        document.getElementById('type-select').value = e.type;
+        window.handleTypeChange();
+        document.getElementById('freq-select').value = e.freq || 'ocasional';
+        document.getElementById('wallet-select').value = e.wallet;
+        document.getElementById('currency-select').value = e.currency || 'CLP';
+        if(e.type === 'transferencia') document.getElementById('wallet-dest-select').value = e.walletDest;
+        document.getElementById('cat-select').value = e.category;
+        document.getElementById('btn-save').innerText = 'Actualizar Registro';
+        document.getElementById('finance-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+    window.deleteEntry = async function(id) { 
+        if(confirm('¿Eliminar registro?')) { 
+            const key = `${selYear.value}-${selMonth.value}`; 
+            db.months[key].entries = db.months[key].entries.filter(e => e.id !== id); 
+            await window.saveDataCloud(); 
+        } 
+    };
+    window.deleteBudget = async function(idx) { 
+        if(confirm('¿Eliminar meta?')) { 
+            const key = `${selYear.value}-${selMonth.value}`; 
+            db.months[key].budgets.splice(idx, 1); 
+            await window.saveDataCloud(); 
+        } 
+    };
+
+    window.changePage = function(dir) { currentPage += dir; window.updateUI(); };
+
+    window.handleDragStart = function(e, index) { draggedIdx = index; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; };
+    window.handleDragOver = function(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+    window.handleDragEnter = function(e) { e.preventDefault(); if (e.currentTarget.classList.contains('account-pill')) e.currentTarget.classList.add('drag-over'); };
+    window.handleDragLeave = function(e) { e.currentTarget.classList.remove('drag-over'); };
+    window.handleDrop = async function(e, targetIdx) {
+        e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+        if (draggedIdx !== null && draggedIdx !== targetIdx && db.wallets) {
+            const moved = db.wallets.splice(draggedIdx, 1)[0];
+            db.wallets.splice(targetIdx, 0, moved);
+            window.populateCategories(); await window.saveDataCloud();
+        }
+    };
+    window.handleDragEnd = function(e) { e.currentTarget.classList.remove('dragging'); draggedIdx = null; document.querySelectorAll('.account-pill').forEach(p => p.classList.remove('drag-over')); };
+
+    // IMPORT / EXPORT
+    window.exportData = function() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+        const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `MayuCash_Respaldo.json`); dl.click();
+    };
+
+    window.importData = function(event) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try { 
+                db = JSON.parse(e.target.result); 
+                if(db && !db.onboardingCompleted) {
+                    db.onboardingCompleted = true;
+                    if(!db.profile) db.profile = { type: 'Personal', currencies: ['CLP', 'USD'] };
+                }
+                await window.saveDataCloud(); 
+                alert("¡Datos cargados y subidos a la nube!"); 
+            } catch(err) { alert("Error al leer el archivo."); }
+        };
+        if(event.target.files[0]) reader.readAsText(event.target.files[0]);
+    };
+
+    // ==============================================
+    // CONEXIÓN FIREBASE REALTIME
+    // ==============================================
+    
+    if(auth) {
+        onAuthStateChanged(auth, async (user) => {
+            if(user) {
+                currentUser = user;
+                document.getElementById("auth-screen").classList.add("hidden");
+                setupRealtimeSync();
+            } else {
+                currentUser = null;
+                document.getElementById("auth-screen").classList.remove("hidden");
+                document.getElementById("main-dashboard").classList.add("hidden");
+                document.getElementById("onboarding-screen").classList.add("hidden");
+                if(realtimeUnsubscribe) realtimeUnsubscribe();
+            }
+        });
+    }
+
+    function setupRealtimeSync() {
+        if (!currentUser || !firestore) return;
+        const docRef = doc(firestore, "users", currentUser.uid);
+        
+        realtimeUnsubscribe = onSnapshot(docRef, (docSnap) => {
+            if(docSnap.exists()) {
+                db = docSnap.data();
+                
+                if(db.wallets && db.wallets.length > 0 && db.onboardingCompleted === undefined) {
+                    db.onboardingCompleted = true;
+                    if(!db.profile) db.profile = { type: 'Personales', currencies: ['CLP', 'USD'] };
+                }
+
+                if(!db.onboardingCompleted) {
+                    document.getElementById("main-dashboard").classList.add("hidden");
+                    document.getElementById("onboarding-screen").classList.remove("hidden");
+                } else {
+                    document.getElementById("onboarding-screen").classList.add("hidden");
+                    document.getElementById("main-dashboard").classList.remove("hidden");
+                    
+                    // Validar que tenga una cuenta principal
+                    if(!db.profile.mainWallet && db.wallets.length > 0) {
+                        db.profile.mainWallet = db.wallets[0].name;
+                    }
+
+                    localStorage.setItem('mayucash_local_fallback', JSON.stringify(db));
+                    document.getElementById('sync-indicator').innerText = "✅ Sincronizado";
+                    document.getElementById('sync-indicator').className = "sync-badge sync-online";
+                    
+                    cleanGhostEntries(); 
+                    window.populateCategories(); 
+                    window.updateUI();
+                }
+            } else {
+                document.getElementById("main-dashboard").classList.add("hidden");
+                document.getElementById("onboarding-screen").classList.remove("hidden");
+            }
+        }, (error) => {
+            document.getElementById('sync-indicator').innerText = "⚠️ Modo Local";
+            document.getElementById('sync-indicator').className = "sync-badge sync-offline";
+            console.error("Fallo Sincronización:", error);
+        });
+    }
+
+    window.saveDataCloud = async function() {
+        cleanGhostEntries(); 
+        localStorage.setItem('mayucash_local_fallback', JSON.stringify(db)); 
+        window.updateUI(); 
+        
+        if (!currentUser || !firestore) return;
+        try {
+            const docRef = doc(firestore, "users", currentUser.uid);
+            await setDoc(docRef, db);
+        } catch(e) { console.error("Error subiendo a la nube", e); }
+    };
+
+    // ==============================================
+    // DIBUJADO DE LA INTERFAZ
+    // ==============================================
+    
+    window.formatAmount = function(amt, currency = 'CLP', showSign = false) { 
+        if (db.privacy) return "****"; 
+        const prefix = showSign ? (amt >= 0 ? '+' : '') : '';
+        return `${prefix}${currency} ${Math.round(amt).toLocaleString()}`; 
+    };
+
+    window.updateUI = function() {
+        if(!db || !db.profile) return;
+        cleanGhostEntries(); 
+        
+        const key = `${selYear.value}-${selMonth.value}`;
+        if (!db.months[key]) db.months[key] = { entries: [], budgets: [] };
+        const data = db.months[key];
+        
+        let mInc = {}, mExp = {}, mCount = {}, totalBal = {};
+        let walletTotals = {}, walletFixedRates = {}, expensesByCat = {};
+        
+        db.profile.currencies.forEach(c => {
+            mInc[c] = 0; mExp[c] = 0; mCount[c] = 0; totalBal[c] = 0;
+        });
+        
+        db.wallets.forEach(w => { walletTotals[w.name] = 0; walletFixedRates[w.name] = 0; });
+
+        Object.keys(db.months).forEach(k => {
+            (db.months[k].entries || []).forEach(e => {
+                const curr = e.currency || db.profile.currencies[0]; 
+                
+                if(e.type === 'transferencia') {
+                    if(walletTotals[e.wallet] !== undefined) walletTotals[e.wallet] -= e.amount;
+                    if(walletTotals[e.walletDest] !== undefined) walletTotals[e.walletDest] += e.amount;
+                    if(k === key && e.freq === 'fijo') {
+                        if(walletFixedRates[e.wallet] !== undefined) walletFixedRates[e.wallet] -= e.amount;
+                        if(walletFixedRates[e.walletDest] !== undefined) walletFixedRates[e.walletDest] += e.amount;
+                    }
+                } else {
+                    const val = e.type === 'ingreso' ? e.amount : -e.amount;
+                    if(walletTotals[e.wallet] !== undefined) walletTotals[e.wallet] += val;
+                    
+                    if(k === key && e.category !== 'Saldo Inicial') {
+                        if(e.type === 'ingreso') {
+                            if(mInc[curr] !== undefined) mInc[curr] += e.amount;
+                            if(e.freq === 'fijo' && walletFixedRates[e.wallet] !== undefined) walletFixedRates[e.wallet] += e.amount;
+                        } else {
+                            if(mExp[curr] !== undefined) mExp[curr] += e.amount;
+                            if(curr === db.profile.currencies[0]) expensesByCat[e.category] = (expensesByCat[e.category] || 0) + e.amount;
+                            if(e.freq === 'fijo' && walletFixedRates[e.wallet] !== undefined) walletFixedRates[e.wallet] -= e.amount;
+                        }
+                        if(mCount[curr] !== undefined) mCount[curr]++;
+                    }
+                }
+            });
+        });
+
+        db.wallets.forEach(w => { 
+            if(walletTotals[w.name] !== undefined && totalBal[w.currency] !== undefined) { 
+                totalBal[w.currency] += walletTotals[w.name]; 
+            }
+        });
+
+        const heroContainer = document.getElementById('hero-cards-container');
+        heroContainer.innerHTML = '';
+        db.profile.currencies.forEach(c => {
+            heroContainer.innerHTML += `
+                <div class="hero-card">
+                    <div class="hero-label">Patrimonio Total ${c}</div>
+                    <div class="hero-main-amount">${window.formatAmount(totalBal[c]||0, c)}</div>
+                    <div class="hero-grid">
+                        <div class="hero-stat bg-verde-stat"><span class="hero-stat-label">Ingresos</span><span class="hero-stat-value">${window.formatAmount(mInc[c]||0, c, true)}</span></div>
+                        <div class="hero-stat bg-rojo-stat"><span class="hero-stat-label">Gastos</span><span class="hero-stat-value">${window.formatAmount(-(mExp[c]||0), c, false)}</span></div>
+                        <div class="hero-stat bg-amarillo-stat"><span class="hero-stat-label">Movs.</span><span class="hero-stat-value">${mCount[c]||0}</span></div>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('privacy-toggle').innerText = db.privacy ? '🙈' : '👁️';
+
+        const accBar = document.getElementById('accounts-bar');
+        accBar.innerHTML = ''; 
+        db.wallets.forEach((w, idx) => {
+            accBar.innerHTML += `
+                <div class="account-pill" draggable="true" ondragstart="window.handleDragStart(event, ${idx})" ondragover="window.handleDragOver(event)" ondragenter="window.handleDragEnter(event)" ondragleave="window.handleDragLeave(event)" ondrop="window.handleDrop(event, ${idx})" ondragend="window.handleDragEnd(event)">
+                    <button type="button" class="btn-delete-wallet" onclick="window.deleteWallet('${w.name}')">✕</button>
+                    <span class="name">${w.name}</span><span class="val">${window.formatAmount(walletTotals[w.name]||0, w.currency)}</span>
+                </div>`;
+        });
+
+        const currentEntries = (data.entries || []).filter(e => e.category !== 'Saldo Inicial').slice().reverse();
+        const totalPages = Math.ceil(currentEntries.length / itemsPerPage) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const pagedEntries = currentEntries.slice(startIndex, startIndex + itemsPerPage);
+        
+        const body = document.getElementById('entries-body');
+        body.innerHTML = '';
+        pagedEntries.forEach(e => {
+            let route = e.type === 'transferencia' ? `${e.wallet} ➔ ${e.walletDest}` : e.wallet;
+            let color = e.type === 'ingreso' ? 'text-green' : (e.type === 'gasto' ? 'text-red' : '');
+            body.innerHTML += `<tr><td><b>${route}</b></td><td>${e.type.toUpperCase()}</td><td>${e.category}</td><td>${e.desc}</td><td class="${color}">${window.formatAmount(e.amount, e.currency)}</td><td><button type="button" class="btn-table" onclick="window.editEntry(${e.id})">✏️</button><button type="button" class="btn-table" onclick="window.deleteEntry(${e.id})" style="color:var(--bg-stat-red)">✕</button></td></tr>`;
+        });
+        document.getElementById('pagination-controls').innerHTML = `<button type="button" class="btn-page" onclick="window.changePage(-1)" ${currentPage === 1 ? 'disabled' : ''}>Anterior</button><span>Mostrando ${currentEntries.length > 0 ? startIndex + 1 : 0}-${Math.min(startIndex + itemsPerPage, currentEntries.length)} de ${currentEntries.length}</span><button type="button" class="btn-page" onclick="window.changePage(1)" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente</button>`;
+
+        const mainCurrency = db.profile.currencies[0]; 
+        document.querySelector('#budget-form button').innerText = `Crear Meta (${mainCurrency})`;
+        const bList = document.getElementById('budget-list-container');
+        bList.innerHTML = '';
+        (data.budgets || []).forEach((b, idx) => {
+            let real = b.categories.reduce((sum, cat) => sum + (expensesByCat[cat] || 0), 0);
+            let perc = Math.min((real / b.limit) * 100, 100);
+            let realPerc = (real / b.limit) * 100;
+            
+            let barColor = 'var(--bg-stat-green)'; 
+            if (realPerc >= 100) { barColor = 'var(--bg-stat-red)'; } 
+            else if (realPerc >= 85) { barColor = 'var(--bg-stat-yellow)'; }
+
+            bList.innerHTML += `
+                <div class="budget-card">
+                    <strong>${b.name}</strong>
+                    <button type="button" onclick="window.deleteBudget(${idx})" style="float:right; border:none; background:none; color:var(--bg-stat-red); cursor:pointer;">✕</button>
+                    <div class="progress-container"><div class="progress-bar" style="width:${perc}%; background:${barColor}"></div></div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.85em;">
+                        <span>Gastado: <b style="color:${realPerc >= 100 ? 'var(--bg-stat-red)' : 'inherit'}">${window.formatAmount(real, mainCurrency)}</b></span>
+                        <span>Tope: ${window.formatAmount(b.limit, mainCurrency)}</span>
+                    </div>
+                </div>`;
+        });
+
+        window.updateMultiAccountProjection(walletTotals, key);
+    };
+
+    window.updateMultiAccountProjection = function(currentBalances, currentMonthKey) {
+        const labels = ['Hoy', '+1 Mes', '+2 Meses', '+3 Meses', '+4 Meses', '+5 Meses', '+6 Meses'];
+        let fixedFlows = [];
+        if(db.months[currentMonthKey] && db.months[currentMonthKey].entries) {
+            db.months[currentMonthKey].entries.forEach(e => {
+                if(e.freq === 'fijo' && e.category !== 'Saldo Inicial') fixedFlows.push(JSON.parse(JSON.stringify(e))); 
+            });
+        }
+
+        let simBalances = { ...currentBalances };
+        let historyPts = {};
+        db.wallets.forEach(w => { historyPts[w.name] = [simBalances[w.name] || 0]; });
+
+        for(let m = 1; m <= 6; m++) {
+            fixedFlows.forEach(flow => {
+                if(flow.category === 'Arriendo' && (m % 3 === 0)) flow.amount = flow.amount * 1.012; 
+                if(flow.type === 'transferencia') {
+                    if(simBalances[flow.wallet] !== undefined) simBalances[flow.wallet] -= flow.amount;
+                    if(simBalances[flow.walletDest] !== undefined) simBalances[flow.walletDest] += flow.amount;
+                } else {
+                    const val = flow.type === 'ingreso' ? flow.amount : -flow.amount;
+                    if(simBalances[flow.wallet] !== undefined) simBalances[flow.wallet] += val;
+                }
+            });
+            db.wallets.forEach(w => { historyPts[w.name].push(simBalances[w.name] || 0); });
+        }
+
+        const datasets = [];
+        const chartColors = ['#1a2a6c', '#0F9D58', '#E67E22', '#8e44ad', '#16a085', '#c0392b', '#2c3e50']; 
+        const detailDiv = document.getElementById('projection-details');
+        detailDiv.innerHTML = '';
+        
+        db.wallets.forEach((w, index) => {
+            const dataPts = historyPts[w.name];
+            datasets.push({ label: `${w.name} (${w.currency})`, data: dataPts, borderColor: chartColors[index % chartColors.length], fill: false, tension: 0.3 });
+            detailDiv.innerHTML += `<div class="projection-item"><span>${w.name}:</span> <b>${window.formatAmount(dataPts[6], w.currency)}</b></div>`;
+        });
+
+        if(db.privacy) { if(chart) chart.destroy(); return; }
+        const ctx = document.getElementById('projectionChart').getContext('2d');
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: datasets }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10} } } }, scales: { x: { grid: { display: false } } } } });
+    };
+</script>
+</body>
+</html>
