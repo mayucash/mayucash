@@ -66,7 +66,8 @@
             .hero-summary { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; margin: 0 -20px 25px -20px; padding: 0 20px 10px 20px; -webkit-overflow-scrolling: touch; }
             .hero-summary::-webkit-scrollbar { display: none; }
             .hero-card { flex: 0 0 92%; scroll-snap-align: center; padding: 20px; }
-            .hero-main-amount { font-size: 2.5em; }
+            /* AJUSTE TAMAÑO MOBILE: Controla el desborde y reduce fuente */
+            .hero-main-amount { font-size: 1.8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
             .hero-stat { padding: 12px 10px; }
             .hero-stat-value { font-size: 1.1em; }
         }
@@ -84,11 +85,17 @@
         .btn-delete-wallet { position: absolute; top: 2px; right: 2px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 10px; padding: 2px 4px; z-index: 10; }
         .btn-delete-wallet:hover { color: var(--bg-stat-red); }
 
-        /* FORMULARIOS Y TABLAS */
-        #finance-form, #wallet-form, #budget-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
-        .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1 1 110px; }
-        .form-group label { font-size: 0.8em; color: var(--text-muted); font-weight: 600; }
-        button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 0 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; }
+        /* FORMULARIOS, FILTROS Y TABLAS (MODIFICADOS A UNA SOLA LÍNEA) */
+        #finance-form, #wallet-form, #budget-form { 
+            display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: flex-end; gap: 10px; padding-bottom: 5px; -webkit-overflow-scrolling: touch; 
+        }
+        /* Scrollbar elegante para los formularios horizontales */
+        #finance-form::-webkit-scrollbar, #wallet-form::-webkit-scrollbar, #budget-form::-webkit-scrollbar, .filters-container::-webkit-scrollbar { height: 6px; }
+        #finance-form::-webkit-scrollbar-thumb, #wallet-form::-webkit-scrollbar-thumb, #budget-form::-webkit-scrollbar-thumb, .filters-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 5px; flex: 0 0 auto; }
+        .form-group label { font-size: 0.8em; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+        button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 0 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; flex: 0 0 auto; white-space: nowrap; }
         button.btn-primary:hover { opacity: 0.9; }
         
         .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
@@ -101,10 +108,10 @@
         .btn-page { background: #fff; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* BLOQUE DE FILTROS */
-        .filters-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid var(--border-color); }
-        .filters-container input, .filters-container select { flex: 1 1 120px; height: 36px; padding: 6px 10px; font-size: 13px; }
-        .btn-clear-filters { background: var(--bg-stat-red); color: white; border: none; border-radius: 6px; padding: 0 15px; cursor: pointer; height: 36px; font-weight: bold; flex: 0 1 auto; transition: 0.2s; }
+        /* BLOQUE DE FILTROS EN UNA LÍNEA */
+        .filters-container { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid var(--border-color); padding-bottom: 10px; }
+        .filters-container input, .filters-container select { flex: 0 0 auto; width: 150px; height: 36px; padding: 6px 10px; font-size: 13px; }
+        .btn-clear-filters { background: var(--bg-stat-red); color: white; border: none; border-radius: 6px; padding: 0 15px; cursor: pointer; height: 36px; font-weight: bold; flex: 0 0 auto; transition: 0.2s; white-space: nowrap; }
         .btn-clear-filters:hover { opacity: 0.9; }
 
         .bottom-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -118,35 +125,14 @@
         .text-red { color: #e74c3c; font-weight: bold; }
         .chart-wrapper { position: relative; height: 250px; width: 100%; margin-bottom: 10px; }
         
-        .sync-badge { font-size: 0.5em; padding: 4px 8px; border-radius: 12px; font-weight: bold; margin-left: 10px; }
+        .sync-badge { font-size: 0.5em; padding: 4px 8px; border-radius: 12px; font-weight: bold; margin-left: 0; }
         .sync-online { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
         .sync-offline { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
 
         /* BOTÓN FLOTANTE DEL MICRÓFONO (FAB) */
-        .fab-mic {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--primary-btn);
-            color: white;
-            font-size: 26px;
-            border: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-            cursor: pointer;
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
+        .fab-mic { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: var(--primary-btn); color: white; font-size: 26px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.25); cursor: pointer; z-index: 1000; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; }
         .fab-mic:hover { transform: scale(1.05); }
-        .fab-mic.recording {
-            background: var(--bg-stat-red);
-            animation: pulse 1.5s infinite;
-        }
+        .fab-mic.recording { background: var(--bg-stat-red); animation: pulse 1.5s infinite; }
         @keyframes pulse {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.7); }
             70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(239, 83, 80, 0); }
@@ -257,16 +243,19 @@
     <button id="fab-mic" class="fab-mic" onclick="window.toggleDictation()" title="Dictar Movimiento">🎤</button>
 
     <div class="header-flex">
-        <h2 class="header-title" style="display:flex; align-items:center;">
-            📊 MayuCash <span id="app-profile-badge" style="font-size: 0.6em; color: var(--text-muted); font-weight: normal; margin-left: 10px;"></span>
+        <h2 class="header-title" style="display:flex; align-items:center; gap: 8px;">
+            📊 MayuCash 
+            <span id="app-profile-badge" style="font-size: 0.6em; color: var(--text-muted); font-weight: normal;"></span>
             <span id="sync-indicator" class="sync-badge sync-offline">Conectando...</span>
+            <button class="btn-icon" title="Configuración" onclick="window.openSettings()" style="padding: 4px 8px; font-size: 0.9em;">⚙️</button>
         </h2>
         <div class="controls-flex">
-            <button class="btn-icon" title="Configuración" onclick="window.openSettings()">⚙️</button>
             <button id="privacy-toggle" class="btn-icon" title="Ocultar Montos" onclick="window.togglePrivacy()">👁️</button>
-            <select id="sel-month" onchange="window.updateUI()"></select>
-            <select id="sel-year" onchange="window.updateUI()"></select>
-            <button class="btn-icon" title="Cerrar Sesión" onclick="window.logoutUser()">🚪</button>
+            <div style="display:flex; gap:5px; flex-wrap: nowrap;">
+                <select id="sel-month" onchange="window.updateUI()"></select>
+                <select id="sel-year" onchange="window.updateUI()"></select>
+                <button class="btn-icon" title="Cerrar Sesión" onclick="window.logoutUser()">🚪</button>
+            </div>
         </div>
     </div>
     
@@ -278,9 +267,9 @@
         <div id="accounts-bar" class="accounts-bar"></div>
         <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
             <form id="wallet-form" onsubmit="event.preventDefault(); window.addWallet();">
-                <input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH, Binance..." style="flex: 2; min-width: 140px;" required>
-                <input type="number" id="new-wallet-balance" placeholder="Monto Inicial" style="flex: 1; min-width: 100px;" required>
-                <select id="new-wallet-currency" style="flex: 1; min-width: 80px;"></select>
+                <div class="form-group" style="flex: 0 0 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
+                <div class="form-group" style="flex: 0 0 130px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
+                <div class="form-group" style="flex: 0 0 80px;"><select id="new-wallet-currency"></select></div>
                 <button type="submit" class="btn-primary">Crear Cuenta</button>
             </form>
         </div>
@@ -290,13 +279,13 @@
         <h3 class="section-header">Registrar Movimiento</h3>
         <form id="finance-form" onsubmit="event.preventDefault(); window.addEntry();">
             <input type="hidden" id="edit-id">
-            <div class="form-group" style="flex: 2 1 120px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Sueldo, Ahorro, Arriendo..." required></div>
-            <div class="form-group" style="flex: 1 1 90px;"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
-            <div class="form-group" style="flex: 0 1 80px;">
+            <div class="form-group" style="flex: 0 0 180px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Sueldo..." required></div>
+            <div class="form-group" style="flex: 0 0 110px;"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
+            <div class="form-group" style="flex: 0 0 80px;">
                 <label>Moneda</label>
                 <select id="currency-select"></select>
             </div>
-            <div class="form-group">
+            <div class="form-group" style="flex: 0 0 130px;">
                 <label>Tipo</label>
                 <select id="type-select" onchange="window.handleTypeChange()">
                     <option value="gasto">Gasto</option>
@@ -304,18 +293,18 @@
                     <option value="transferencia">Transferencia</option>
                 </select>
             </div>
-            <div class="form-group" id="cat-group"><label>Categoría</label><select id="cat-select" required></select></div>
+            <div class="form-group" id="cat-group" style="flex: 0 0 160px;"><label>Categoría</label><select id="cat-select" required></select></div>
             
-            <div class="form-group" id="freq-group">
+            <div class="form-group" id="freq-group" style="flex: 0 0 120px;">
                 <label>Frecuencia</label>
                 <select id="freq-select">
-                    <option value="ocasional">Ocasional (Una vez)</option>
-                    <option value="fijo">Fijo (Automático Mensual)</option>
+                    <option value="ocasional">Ocasional</option>
+                    <option value="fijo">Fijo</option>
                 </select>
             </div>
 
-            <div class="form-group"><label id="lbl-wallet-orig">En la Cuenta:</label><select id="wallet-select" onchange="window.handleWalletChange(event)"></select></div>
-            <div class="form-group hidden" id="dest-group"><label>Hacia la Cuenta (Ahorro):</label><select id="wallet-dest-select"></select></div>
+            <div class="form-group" style="flex: 0 0 150px;"><label id="lbl-wallet-orig">En la Cuenta:</label><select id="wallet-select" onchange="window.handleWalletChange(event)"></select></div>
+            <div class="form-group hidden" id="dest-group" style="flex: 0 0 150px;"><label>Hacia la Cuenta:</label><select id="wallet-dest-select"></select></div>
             <button type="submit" class="btn-primary" id="btn-save">Guardar Registro</button>
         </form>
     </div>
@@ -349,14 +338,14 @@
 
     <div class="bottom-layout">
         <div class="section">
-            <h3 class="section-header">Metas y Presupuestos (CLP)</h3>
+            <h3 class="section-header">Metas y Presupuestos</h3>
             <form id="budget-form" onsubmit="event.preventDefault(); window.addBudget();">
-                <input type="text" id="budget-name" placeholder="Ej: Máximo Tarjetas" style="width:100%; margin-bottom:8px;" required>
-                <input type="number" id="budget-limit" placeholder="Monto Tope" style="width:100%; margin-bottom:8px;" required>
-                <select id="budget-cats-multi" multiple style="width:100%; height:80px; margin-bottom:10px;" required></select>
-                <button type="submit" class="btn-primary" style="width:100%">Crear Meta</button>
+                <div class="form-group" style="flex: 0 0 180px;"><input type="text" id="budget-name" placeholder="Ej: Tarjetas" required></div>
+                <div class="form-group" style="flex: 0 0 130px;"><input type="number" id="budget-limit" placeholder="Monto Tope" required></div>
+                <div class="form-group" style="flex: 0 0 200px;"><select id="budget-cats-multi" multiple style="height:42px;" required></select></div>
+                <button type="submit" class="btn-primary">Crear Meta</button>
             </form>
-            <div id="budget-list-container"></div>
+            <div id="budget-list-container" style="margin-top: 15px;"></div>
         </div>
 
         <div class="section">
@@ -481,7 +470,7 @@
             
             // Si el usuario configuró una cuenta principal, usamos esa. Si no, usamos la primera que exista.
             let walletValue = (db.profile && db.profile.mainWallet) ? db.profile.mainWallet : (db.wallets.length > 0 ? db.wallets[0].name : '');
-            let catValue = 'Otros';
+            let catValue = 'Otro';
             let descValue = transcript.trim().charAt(0).toUpperCase() + transcript.trim().slice(1);
 
             // 3. Reglas Inteligentes (El "Cerebro")
@@ -976,7 +965,7 @@
     };
 
     // ==============================================
-    // DIBUJADO DE LA INTERFAZ Y FILTROS
+    // DIBUJADO DE LA INTERFAZ
     // ==============================================
     
     window.formatAmount = function(amt, currency = 'CLP', showSign = false) { 
