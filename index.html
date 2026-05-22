@@ -51,13 +51,13 @@
 
         /* HERO CARDS */
         .hero-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .hero-card { background: var(--bg-hero-main); border-radius: 10px; padding: 15px; color: white; }
+        .hero-card { background: var(--bg-hero-main); border-radius: 16px; padding: 25px; color: white; }
         .hero-label { font-size: 0.85em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-        .hero-main-amount { font-size: 1.8em; font-weight: 800; margin-bottom: 15px; line-height: 1; }
+        .hero-main-amount { font-size: 3em; font-weight: 800; margin-bottom: 20px; line-height: 1; }
         .hero-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-        .hero-stat { display: flex; flex-direction: column; padding: 10px; border-radius: 8px; text-align: left; align-items: flex-start; }
+        .hero-stat { display: flex; flex-direction: column; padding: 15px 12px; border-radius: 12px; text-align: left; align-items: flex-start; }
         .hero-stat-label { font-size: 0.7em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-        .hero-stat-value { font-size: 0.8em; font-weight: 800; white-space: nowrap; }
+        .hero-stat-value { font-size: 1.2em; font-weight: 800; white-space: nowrap; }
         .bg-verde-stat { background-color: var(--bg-stat-green); }
         .bg-rojo-stat { background-color: var(--bg-stat-red); }
         .bg-amarillo-stat { background-color: var(--bg-stat-yellow); }
@@ -100,6 +100,12 @@
         .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 0.9em; background: #f8f9fa; padding: 10px; border-radius: 8px; }
         .btn-page { background: #fff; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* BLOQUE DE FILTROS */
+        .filters-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid var(--border-color); }
+        .filters-container input, .filters-container select { flex: 1 1 120px; height: 36px; padding: 6px 10px; font-size: 13px; }
+        .btn-clear-filters { background: var(--bg-stat-red); color: white; border: none; border-radius: 6px; padding: 0 15px; cursor: pointer; height: 36px; font-weight: bold; flex: 0 1 auto; transition: 0.2s; }
+        .btn-clear-filters:hover { opacity: 0.9; }
 
         .bottom-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media (max-width: 850px) { .bottom-layout { grid-template-columns: 1fr; } }
@@ -316,6 +322,22 @@
 
     <div class="section">
         <h3 class="section-header">Historial de Movimientos</h3>
+        
+        <div class="filters-container">
+            <input type="text" id="filter-note" placeholder="🔍 Buscar por nota..." oninput="window.updateUI()">
+            <input type="number" id="filter-amount" placeholder="💲 Monto exacto" oninput="window.updateUI()">
+            <select id="filter-type" onchange="window.updateUI()">
+                <option value="">Cualquier Tipo</option>
+                <option value="gasto">Gasto</option>
+                <option value="ingreso">Ingreso</option>
+                <option value="transferencia">Transferencia</option>
+            </select>
+            <select id="filter-wallet" onchange="window.updateUI()"><option value="">Cualquier Cuenta</option></select>
+            <select id="filter-cat" onchange="window.updateUI()"><option value="">Cualquier Categoría</option></select>
+            <select id="filter-currency" onchange="window.updateUI()"><option value="">Cualquier Moneda</option></select>
+            <button type="button" class="btn-clear-filters" onclick="window.clearFilters()">Limpiar</button>
+        </div>
+
         <div class="table-responsive">
             <table id="entries-table">
                 <thead><tr><th>Cuenta</th><th>Tipo</th><th>Cat.</th><th>Nota</th><th>Monto</th><th>Acciones</th></tr></thead>
@@ -327,7 +349,7 @@
 
     <div class="bottom-layout">
         <div class="section">
-            <h3 class="section-header">Metas y Presupuestos</h3>
+            <h3 class="section-header">Metas y Presupuestos (CLP)</h3>
             <form id="budget-form" onsubmit="event.preventDefault(); window.addBudget();">
                 <input type="text" id="budget-name" placeholder="Ej: Máximo Tarjetas" style="width:100%; margin-bottom:8px;" required>
                 <input type="number" id="budget-limit" placeholder="Monto Tope" style="width:100%; margin-bottom:8px;" required>
@@ -385,7 +407,7 @@
     let db = JSON.parse(localStorage.getItem('mayucash_local_fallback')) || null;
 
     // CONSTANTES
-    const catGastos = ["Arriendo", "Gastos Comunes", "Luz", "Agua", "Gas", "Internet", "Móvil", "Supermercado", "Suscripción", "Salidas/Ocio", "Compras", "Tarjetas de Crédito", "Créditos", "Pensión", "Aporte Familia", "Mascotas", "Salud", "Vacaciones", "Mantenimiento","Otro"];
+    const catGastos = ["Arriendo", "Gastos Comunes", "Luz", "Agua", "Gas", "Internet", "Móvil", "Supermercado", "Salidas/Ocio", "Compras", "Tarjetas de Crédito", "Créditos", "Pensión", "Aporte Familia", "Mascotas", "Salud", "Vacaciones", "Mantenimiento"];
     const catIngresos = ["Salario Principal", "Ahorro", "Rendimientos/Inversión", "Ventas Extras", "Saldo Inicial"];
     const catTransferencias = ["Ahorro", "Inversión", "Pago Tarjeta", "Movimiento Interno", "Fondo Emergencia", "Otro"];
     let chart;
@@ -464,13 +486,12 @@
 
             // 3. Reglas Inteligentes (El "Cerebro")
             if (transcript.includes('agua') || transcript.includes('luz') || transcript.includes('gas')) {
-                // Si dice agua/luz/gas y el monto es mayor a 3000, es una factura. Si es menor, es una bebida/compra.
                 if (amount > 3000) {
                     catValue = 'Luz/Agua/Gas';
                     freqValue = 'fijo';
                     descValue = 'Pago de servicio (' + (transcript.includes('agua') ? 'Agua' : transcript.includes('luz') ? 'Luz' : 'Gas') + ')';
                 } else {
-                    catValue = 'Salidas/Ocio'; // O Supermercado
+                    catValue = 'Salidas/Ocio';
                     freqValue = 'ocasional';
                     descValue = transcript.includes('agua') ? 'Agua mineral' : descValue;
                 }
@@ -683,6 +704,42 @@
         catGastos.forEach(c => multi.add(new Option(c, c)));
         
         document.getElementById('app-profile-badge').innerText = `(${db.profile.type})`;
+
+        // ACTUALIZACIÓN DE FILTROS DESPLEGABLES
+        const fCatSelect = document.getElementById('filter-cat');
+        const currentCatFilter = fCatSelect.value;
+        fCatSelect.innerHTML = '<option value="">Cualquier Categoría</option>';
+        const allCats = [...new Set([...catGastos, ...catIngresos, ...catTransferencias])].sort();
+        allCats.forEach(c => fCatSelect.add(new Option(c, c)));
+        fCatSelect.value = currentCatFilter;
+
+        const fWalletSelect = document.getElementById('filter-wallet');
+        const currentWalletFilter = fWalletSelect.value;
+        fWalletSelect.innerHTML = '<option value="">Cualquier Cuenta</option>';
+        if(db && db.wallets) {
+            db.wallets.forEach(w => fWalletSelect.add(new Option(w.name, w.name)));
+        }
+        fWalletSelect.value = currentWalletFilter;
+
+        const fCurrSelect = document.getElementById('filter-currency');
+        const currentCurrFilter = fCurrSelect.value;
+        fCurrSelect.innerHTML = '<option value="">Cualquier Moneda</option>';
+        if(db && db.profile && db.profile.currencies) {
+            db.profile.currencies.forEach(c => fCurrSelect.add(new Option(c, c)));
+        }
+        fCurrSelect.value = currentCurrFilter;
+    };
+
+    // LIMPIAR FILTROS
+    window.clearFilters = function() {
+        document.getElementById('filter-note').value = '';
+        document.getElementById('filter-amount').value = '';
+        document.getElementById('filter-type').value = '';
+        document.getElementById('filter-wallet').value = '';
+        document.getElementById('filter-cat').value = '';
+        document.getElementById('filter-currency').value = '';
+        currentPage = 1;
+        window.updateUI();
     };
 
     // FORMULARIOS DE DATA
@@ -883,7 +940,6 @@
                     document.getElementById("onboarding-screen").classList.add("hidden");
                     document.getElementById("main-dashboard").classList.remove("hidden");
                     
-                    // Validar que tenga una cuenta principal
                     if(!db.profile.mainWallet && db.wallets.length > 0) {
                         db.profile.mainWallet = db.wallets[0].name;
                     }
@@ -920,7 +976,7 @@
     };
 
     // ==============================================
-    // DIBUJADO DE LA INTERFAZ
+    // DIBUJADO DE LA INTERFAZ Y FILTROS
     // ==============================================
     
     window.formatAmount = function(amt, currency = 'CLP', showSign = false) { 
@@ -1009,11 +1065,31 @@
                 </div>`;
         });
 
-        const currentEntries = (data.entries || []).filter(e => e.category !== 'Saldo Inicial').slice().reverse();
-        const totalPages = Math.ceil(currentEntries.length / itemsPerPage) || 1;
+        // ----------------------------------------------------------------
+        // LÓGICA DE FILTROS EN LA TABLA
+        // ----------------------------------------------------------------
+        const fNote = document.getElementById('filter-note').value.toLowerCase();
+        const fAmt = document.getElementById('filter-amount').value;
+        const fType = document.getElementById('filter-type').value;
+        const fWallet = document.getElementById('filter-wallet').value;
+        const fCat = document.getElementById('filter-cat').value;
+        const fCurr = document.getElementById('filter-currency').value;
+
+        // Comenzamos con todos los registros del mes (sin Saldo Inicial)
+        let filteredEntries = (data.entries || []).filter(e => e.category !== 'Saldo Inicial').slice().reverse();
+
+        // Aplicamos filtros si tienen algún valor escrito/seleccionado
+        if (fNote) filteredEntries = filteredEntries.filter(e => e.desc.toLowerCase().includes(fNote));
+        if (fAmt) filteredEntries = filteredEntries.filter(e => e.amount === parseFloat(fAmt));
+        if (fType) filteredEntries = filteredEntries.filter(e => e.type === fType);
+        if (fWallet) filteredEntries = filteredEntries.filter(e => e.wallet === fWallet || e.walletDest === fWallet);
+        if (fCat) filteredEntries = filteredEntries.filter(e => e.category === fCat);
+        if (fCurr) filteredEntries = filteredEntries.filter(e => e.currency === fCurr);
+
+        const totalPages = Math.ceil(filteredEntries.length / itemsPerPage) || 1;
         if (currentPage > totalPages) currentPage = totalPages;
         const startIndex = (currentPage - 1) * itemsPerPage;
-        const pagedEntries = currentEntries.slice(startIndex, startIndex + itemsPerPage);
+        const pagedEntries = filteredEntries.slice(startIndex, startIndex + itemsPerPage);
         
         const body = document.getElementById('entries-body');
         body.innerHTML = '';
@@ -1022,7 +1098,8 @@
             let color = e.type === 'ingreso' ? 'text-green' : (e.type === 'gasto' ? 'text-red' : '');
             body.innerHTML += `<tr><td><b>${route}</b></td><td>${e.type.toUpperCase()}</td><td>${e.category}</td><td>${e.desc}</td><td class="${color}">${window.formatAmount(e.amount, e.currency)}</td><td><button type="button" class="btn-table" onclick="window.editEntry(${e.id})">✏️</button><button type="button" class="btn-table" onclick="window.deleteEntry(${e.id})" style="color:var(--bg-stat-red)">✕</button></td></tr>`;
         });
-        document.getElementById('pagination-controls').innerHTML = `<button type="button" class="btn-page" onclick="window.changePage(-1)" ${currentPage === 1 ? 'disabled' : ''}>Anterior</button><span>Mostrando ${currentEntries.length > 0 ? startIndex + 1 : 0}-${Math.min(startIndex + itemsPerPage, currentEntries.length)} de ${currentEntries.length}</span><button type="button" class="btn-page" onclick="window.changePage(1)" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente</button>`;
+        
+        document.getElementById('pagination-controls').innerHTML = `<button type="button" class="btn-page" onclick="window.changePage(-1)" ${currentPage === 1 ? 'disabled' : ''}>Anterior</button><span>Mostrando ${filteredEntries.length > 0 ? startIndex + 1 : 0}-${Math.min(startIndex + itemsPerPage, filteredEntries.length)} de ${filteredEntries.length}</span><button type="button" class="btn-page" onclick="window.changePage(1)" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente</button>`;
 
         const mainCurrency = db.profile.currencies[0]; 
         document.querySelector('#budget-form button').innerText = `Crear Meta (${mainCurrency})`;
