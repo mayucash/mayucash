@@ -81,9 +81,7 @@
         .tab-btn.active { color: var(--primary-btn); border-bottom-color: var(--primary-btn); }
         .tab-btn:hover { color: var(--text-dark); }
 
-        /* ========================================================
-           SISTEMA DINÁMICO DE FORMULARIOS (1 Línea vs Acoplado)
-           ======================================================== */
+        /* SISTEMA DINÁMICO DE FORMULARIOS */
         .form-flex { display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: flex-end; gap: 10px; width: 100%; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
         .form-flex::-webkit-scrollbar, .filters-container::-webkit-scrollbar { height: 6px; }
         .form-flex::-webkit-scrollbar-thumb, .filters-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
@@ -91,7 +89,7 @@
         .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1 1 auto; min-width: 100px; }
         .form-group label { font-size: 0.8em; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
         
-        button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 10px 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; flex: 0 0 auto; white-space: nowrap; margin-top: 0; }
+        button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 0 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; flex: 0 0 auto; white-space: nowrap; margin-top: 0; }
         button.btn-primary:hover { opacity: 0.9; }
 
         /* TABLAS Y EXTRAS */
@@ -112,9 +110,7 @@
         .btn-clear-filters:hover { opacity: 0.9; }
 
         /* RESPONSIVE GENERAL INFERIOR */
-        /* minmax(0, 1fr) Fuerza a que las columnas de PC sean SIEMPRE 50% y 50% exactos */
         .bottom-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start;}
-        
         .action-buttons { display: flex; gap: 10px; margin-top: 20px; }
 
         @media (max-width: 850px) { 
@@ -125,14 +121,13 @@
             .hero-main-amount { font-size: 1.8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
             .hero-stat { padding: 12px 10px; }
             .hero-stat-value { font-size: 0.7em; }
-            .tab-btn { font-size: 0.85em; padding: 10px 8px; } /* Tabs más pequeñas */
+            .tab-btn { font-size: 0.85em; padding: 10px 8px; }
 
             .form-flex { flex-wrap: wrap; overflow-x: visible; }
             .full-width-mob { flex: 1 1 100% !important; min-width: 100% !important; }
             .half-width-mob { flex: 1 1 45% !important; min-width: 45% !important; }
             button.btn-primary { flex: 1 1 100% !important; min-width: 100% !important; }
             
-            /* Botones de Carga y Exportación apilados en Mobile */
             .action-buttons { flex-direction: column; }
         }
         
@@ -306,7 +301,9 @@
 
         <form id="finance-form" class="form-flex" onsubmit="event.preventDefault(); window.addEntry();">
             <input type="hidden" id="edit-id">
-            <input type="hidden" id="type-select" value="gasto"> <div class="form-group full-width-mob" style="flex: 2 1 200px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Supermercado..." required></div>
+            <input type="hidden" id="type-select" value="gasto">
+
+            <div class="form-group full-width-mob" style="flex: 2 1 200px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Supermercado..." required></div>
             <div class="form-group half-width-mob" style="flex: 1 1 120px;"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
             <div class="form-group half-width-mob" style="flex: 1 1 80px;"><label>Moneda</label><select id="currency-select"></select></div>
             
@@ -379,10 +376,27 @@
                 <canvas id="projectionChart"></canvas>
             </div>
             <div id="projection-details" class="projection-list"></div>
+
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-top: 15px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 0.9em; color: var(--text-dark);">🔮 Simulador de Eventos Futuros <span style="font-size:0.8em; color:var(--text-muted); font-weight:normal;">(No afecta saldo real)</span></h4>
+                <form id="sim-form" onsubmit="event.preventDefault(); window.addSimulation();" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <input type="text" id="sim-desc" placeholder="Ej: Viaje / Cyber" required style="flex: 2 1 120px; height: 34px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;">
+                    <input type="number" id="sim-amount" placeholder="Monto" required style="flex: 1 1 80px; height: 34px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;">
+                    <select id="sim-month" required style="flex: 1 1 80px; height: 34px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;">
+                        <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                        <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                        <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+                        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                    </select>
+                    <select id="sim-wallet" required style="flex: 1 1 100px; height: 34px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;"></select>
+                    <button type="submit" class="btn-primary" style="height: 34px; padding: 0 15px; font-size: 12px; margin-top: 0; flex: 1 1 100%;">Añadir Gasto a la Proyección</button>
+                </form>
+                <div id="sim-list" style="margin-top: 10px; font-size: 0.85em;"></div>
+            </div>
             
             <div class="action-buttons">
-                <button class="btn-primary" onclick="window.exportData()" style="flex:1; background: #607d8b; padding:10px; font-size:0.9em;">💾 Exportar a PC</button>
-                <button class="btn-primary" onclick="document.getElementById('importFile').click()" style="flex:1; background: #607d8b; padding:10px; font-size:0.9em;">📂 Cargar Archivo</button>
+                <button class="btn-primary" onclick="window.exportData()" style="flex:1; background: #607d8b; padding:0 10px; font-size:0.9em;">💾 Exportar a PC</button>
+                <button class="btn-primary" onclick="document.getElementById('importFile').click()" style="flex:1; background: #607d8b; padding:0 10px; font-size:0.9em;">📂 Cargar Archivo</button>
                 <input type="file" id="importFile" onchange="window.importData(event)" style="display: none;">
             </div>
         </div>
@@ -546,7 +560,7 @@
         const acc2Name = document.getElementById('ob-acc2-name').value.trim();
         const acc2Bal = parseFloat(document.getElementById('ob-acc2-bal').value) || 0;
 
-        db = { profile: { type: type, currencies: currs, mainWallet: acc1Name }, wallets: [], months: {}, privacy: false, onboardingCompleted: true };
+        db = { profile: { type: type, currencies: currs, mainWallet: acc1Name }, wallets: [], months: {}, simulations: [], privacy: false, onboardingCompleted: true };
 
         const mainCurr = currs[0];
         db.wallets.push({ name: acc1Name, currency: mainCurr });
@@ -655,9 +669,16 @@
         const dSelect = document.getElementById('wallet-dest-select');
         wSelect.innerHTML = ''; dSelect.innerHTML = '<option value="">Hacia Cuenta...</option>';
         
+        const simWalletSelect = document.getElementById('sim-wallet');
+        if (simWalletSelect) simWalletSelect.innerHTML = '';
+
         if(db && db.wallets) {
             db.wallets.forEach(w => { 
-                if(w.name) { wSelect.add(new Option(`${w.name} (${w.currency})`, w.name)); dSelect.add(new Option(`${w.name} (${w.currency})`, w.name)); }
+                if(w.name) { 
+                    wSelect.add(new Option(`${w.name} (${w.currency})`, w.name)); 
+                    dSelect.add(new Option(`${w.name} (${w.currency})`, w.name)); 
+                    if(simWalletSelect) simWalletSelect.add(new Option(`${w.name} (${w.currency})`, w.name));
+                }
             });
             if(db.wallets.length > 0 && !currSelects[1].value) currSelects[1].value = db.wallets[0].currency;
         }
@@ -760,6 +781,28 @@
         }
     };
 
+    // FUNCIONES DEL SIMULADOR
+    window.addSimulation = async function() {
+        if(!db.simulations) db.simulations = [];
+        const desc = document.getElementById('sim-desc').value.trim();
+        const amount = parseFloat(document.getElementById('sim-amount').value);
+        const month = document.getElementById('sim-month').value;
+        const wallet = document.getElementById('sim-wallet').value;
+        
+        if(desc && amount && month && wallet) {
+            db.simulations.push({ id: Date.now(), desc, amount, month, wallet });
+            document.getElementById('sim-form').reset();
+            await window.saveDataCloud();
+        }
+    };
+
+    window.deleteSimulation = async function(id) {
+        if(confirm('¿Eliminar este gasto futuro simulado?')) {
+            db.simulations = db.simulations.filter(s => s.id !== id);
+            await window.saveDataCloud();
+        }
+    };
+
     window.deleteWallet = async function(name) {
         let hasMovements = false;
         Object.values(db.months).forEach(m => {
@@ -775,6 +818,7 @@
             window.populateCategories(); await window.saveDataCloud(); 
         }
     };
+
     window.editEntry = function(id) {
         const key = `${selYear.value}-${selMonth.value}`;
         const e = db.months[key].entries.find(en => en.id === id);
@@ -796,6 +840,7 @@
         document.getElementById('btn-save').innerText = 'Actualizar Registro';
         document.getElementById('finance-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
+
     window.deleteEntry = async function(id) { 
         if(confirm('¿Eliminar registro?')) { 
             const key = `${selYear.value}-${selMonth.value}`; 
@@ -803,6 +848,7 @@
             await window.saveDataCloud(); 
         } 
     };
+
     window.deleteBudget = async function(idx) { 
         if(confirm('¿Eliminar meta?')) { 
             const key = `${selYear.value}-${selMonth.value}`; 
@@ -841,6 +887,7 @@
                     db.onboardingCompleted = true;
                     if(!db.profile) db.profile = { type: 'Personal', currencies: ['CLP', 'USD'] };
                 }
+                if(!db.simulations) db.simulations = [];
                 await window.saveDataCloud(); 
                 alert("¡Datos cargados y subidos a la nube!"); 
             } catch(err) { alert("Error al leer el archivo."); }
@@ -876,6 +923,7 @@
                     db.onboardingCompleted = true;
                     if(!db.profile) db.profile = { type: 'Personales', currencies: ['CLP', 'USD'] };
                 }
+                if(!db.simulations) db.simulations = [];
 
                 if(!db.onboardingCompleted) {
                     document.getElementById("main-dashboard").classList.add("hidden");
@@ -907,6 +955,7 @@
 
     window.saveDataCloud = async function() {
         cleanGhostEntries(); 
+        if(!db.simulations) db.simulations = [];
         localStorage.setItem('mayucash_local_fallback', JSON.stringify(db)); 
         window.updateUI(); 
         
@@ -926,6 +975,7 @@
     window.updateUI = function() {
         if(!db || !db.profile) return;
         cleanGhostEntries(); 
+        if(!db.simulations) db.simulations = [];
         
         const key = `${selYear.value}-${selMonth.value}`;
         if (!db.months[key]) db.months[key] = { entries: [], budgets: [] };
@@ -1067,6 +1117,7 @@
     };
 
     window.updateMultiAccountProjection = function(currentBalances, currentMonthKey) {
+        if(!db.simulations) db.simulations = [];
         const labels = ['Hoy', '+1 Mes', '+2 Meses', '+3 Meses', '+4 Meses', '+5 Meses', '+6 Meses'];
         let fixedFlows = [];
         if(db.months[currentMonthKey] && db.months[currentMonthKey].entries) {
@@ -1079,7 +1130,11 @@
         let historyPts = {};
         db.wallets.forEach(w => { historyPts[w.name] = [simBalances[w.name] || 0]; });
 
+        let startMonth = parseInt(document.getElementById('sel-month').value);
+
         for(let m = 1; m <= 6; m++) {
+            
+            // 1. Aplicar Gastos Fijos
             fixedFlows.forEach(flow => {
                 if(flow.category === 'Arriendo' && (m % 3 === 0)) flow.amount = flow.amount * 1.012; 
                 if(flow.type === 'transferencia') {
@@ -1090,6 +1145,20 @@
                     if(simBalances[flow.wallet] !== undefined) simBalances[flow.wallet] += val;
                 }
             });
+
+            // 2. Aplicar Simulaciones de Eventos Futuros (What-If)
+            let currentSimMonth = startMonth + m;
+            if (currentSimMonth > 12) currentSimMonth -= 12;
+
+            db.simulations.forEach(sim => {
+                if (parseInt(sim.month) === currentSimMonth) {
+                    if(simBalances[sim.wallet] !== undefined) {
+                        simBalances[sim.wallet] -= parseFloat(sim.amount);
+                    }
+                }
+            });
+
+            // 3. Guardar puntos para el gráfico
             db.wallets.forEach(w => { historyPts[w.name].push(simBalances[w.name] || 0); });
         }
 
@@ -1108,6 +1177,22 @@
         const ctx = document.getElementById('projectionChart').getContext('2d');
         if (chart) chart.destroy();
         chart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: datasets }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10} } } }, scales: { x: { grid: { display: false } } } } });
+
+        // DIBUJAR LISTA DE EVENTOS SIMULADOS EN PANTALLA
+        const simList = document.getElementById('sim-list');
+        simList.innerHTML = '';
+        const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+        db.simulations.forEach(sim => {
+            const mName = monthNames[parseInt(sim.month)-1];
+            // Buscar moneda de la billetera
+            let wObj = db.wallets.find(w => w.name === sim.wallet);
+            let wCurr = wObj ? wObj.currency : 'CLP';
+
+            simList.innerHTML += `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #ccc;">
+                <span>📌 ${sim.desc} <b>(${mName})</b> en ${sim.wallet}</span>
+                <span style="color:var(--bg-stat-red); font-weight:bold;">-${window.formatAmount(sim.amount, wCurr, false)} <button type="button" onclick="window.deleteSimulation(${sim.id})" style="background:none; border:none; color:var(--bg-stat-red); cursor:pointer; margin-left:5px; font-weight:bold;">✕</button></span>
+            </div>`;
+        });
     };
 </script>
 </body>
