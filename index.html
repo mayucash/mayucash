@@ -29,7 +29,7 @@
         .auth-container h2 { margin-top: 0; margin-bottom: 10px; font-weight: 700; }
         .auth-form { display: flex; flex-direction: column; gap: 15px; text-align: left; }
         .auth-form label { font-size: 0.85em; font-weight: 600; color: var(--text-muted); margin-bottom: -10px; }
-        .auth-form input, .auth-form select { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .auth-form input, .auth-form select, .auth-form textarea { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-family: inherit; font-size: 14px;}
         .auth-btn-group { display: flex; gap: 10px; margin-top: 10px; }
         .auth-btn-group button { flex: 1; height: 42px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; color: white; transition: opacity 0.2s; }
         .auth-btn-group button:hover { opacity: 0.9; }
@@ -37,8 +37,8 @@
         .btn-secondary { background: #7f8c8d !important; }
 
         /* MODAL (Configuración) */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: var(--bg-card); padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; padding: 20px 0;}
+        .modal-content { background: var(--bg-card); padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin: auto;}
         .modal-content h3 { margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
 
         /* ENCABEZADO */
@@ -182,7 +182,7 @@
         </select>
 
         <label>Selecciona tus Monedas (Máx. 3)</label>
-        <select id="ob-currencies" multiple required style="height: 120px;" onchange="window.limitCurrencies(this)">
+        <select id="ob-currencies" multiple required style="height: 120px;" onchange="window.limitCurrencies(this, 'ob-curr-warning')">
             <option value="CLP" selected>CLP - Peso Chileno</option>
             <option value="USD" selected>USD - Dólar Estadounidense</option>
             <option value="EUR">EUR - Euro</option>
@@ -215,9 +215,10 @@
 </div>
 
 <div id="settings-modal" class="modal-overlay hidden">
-    <div class="modal-content">
+    <div class="modal-content" style="max-height: 90vh; display: flex; flex-direction: column;">
         <h3>⚙️ Configuración del Perfil</h3>
-        <form class="auth-form" onsubmit="event.preventDefault(); window.saveSettings();">
+        <form class="auth-form" onsubmit="event.preventDefault(); window.saveSettings();" style="overflow-y: auto; padding-right: 5px;">
+            
             <label>Tipo de Finanzas</label>
             <select id="set-type" required>
                 <option value="Personales">Personales</option>
@@ -226,7 +227,7 @@
             </select>
 
             <label>Monedas Habilitadas (Máx. 3)</label>
-            <select id="set-currencies" multiple required style="height: 120px;" onchange="window.limitCurrencies(this, 'set-curr-warning')">
+            <select id="set-currencies" multiple required style="height: 100px;" onchange="window.limitCurrencies(this, 'set-curr-warning')">
                 <option value="CLP">CLP - Peso Chileno</option>
                 <option value="USD">USD - Dólar Estadounidense</option>
                 <option value="EUR">EUR - Euro</option>
@@ -245,9 +246,17 @@
             <label>Cuenta Principal (Para dictado por voz)</label>
             <select id="set-main-wallet" required></select>
 
-            <div class="auth-btn-group" style="margin-top: 20px;">
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 5px 0;">
+
+            <label>Categorías de Gastos (Separadas por coma)</label>
+            <textarea id="set-cat-gastos" rows="3" required placeholder="Ej: Arriendo, Supermercado, Luz..."></textarea>
+
+            <label>Categorías de Ingresos (Separadas por coma)</label>
+            <textarea id="set-cat-ingresos" rows="2" required placeholder="Ej: Salario, Venta..."></textarea>
+
+            <div class="auth-btn-group" style="margin-top: 10px;">
                 <button type="button" class="btn-secondary" onclick="window.closeSettings()">Cancelar</button>
-                <button type="submit" class="btn-auth-main">Guardar</button>
+                <button type="submit" class="btn-auth-main">Guardar Cambios</button>
             </div>
         </form>
     </div>
@@ -431,9 +440,11 @@
     let realtimeUnsubscribe = null;
     let db = JSON.parse(localStorage.getItem('mayucash_local_fallback')) || null;
 
-    const catGastos = ["Arriendo", "Gastos Comunes", "Luz", "Agua", "Gas", "Internet", "Móvil", "Supermercado", "Transporte", "Salidas/Ocio", "Compras", "Tarjetas de Crédito", "Créditos", "Pensión", "Aporte Familia", "Mascotas", "Salud", "Vacaciones", "Mantenimiento", "Otro"];
-    const catIngresos = ["Salario Principal", "Ahorro", "Rendimientos/Inversión", "Devolución", "Ventas Extras", "Saldo Inicial"];
+    // Constantes por defecto (Fallback si el usuario aún no las personaliza)
+    const defaultCatGastos = ["Arriendo", "Gastos Comunes", "Luz", "Agua", "Gas", "Internet", "Móvil", "Supermercado", "Transporte", "Salidas/Ocio", "Compras", "Tarjetas de Crédito", "Créditos", "Pensión", "Aporte Familia", "Mascotas", "Salud", "Vacaciones", "Mantenimiento", "Otro"];
+    const defaultCatIngresos = ["Salario Principal", "Ahorro", "Rendimientos/Inversión", "Devolución", "Ventas Extras", "Saldo Inicial"];
     const catTransferencias = ["Ahorro", "Inversión", "Pago Tarjeta", "Movimiento Interno", "Fondo Emergencia", "Otro"];
+    
     let chart;
     let currentPage = 1;
     const itemsPerPage = 10;
@@ -563,7 +574,20 @@
         const acc2Name = document.getElementById('ob-acc2-name').value.trim();
         const acc2Bal = parseFloat(document.getElementById('ob-acc2-bal').value) || 0;
 
-        db = { profile: { type: type, currencies: currs, mainWallet: acc1Name }, wallets: [], months: {}, simulations: [], privacy: false, onboardingCompleted: true };
+        db = { 
+            profile: { 
+                type: type, 
+                currencies: currs, 
+                mainWallet: acc1Name,
+                catGastos: [...defaultCatGastos],
+                catIngresos: [...defaultCatIngresos]
+            }, 
+            wallets: [], 
+            months: {}, 
+            simulations: [], 
+            privacy: false, 
+            onboardingCompleted: true 
+        };
 
         const mainCurr = currs[0];
         db.wallets.push({ name: acc1Name, currency: mainCurr });
@@ -592,6 +616,10 @@
         db.wallets.forEach(w => mainWalletSel.add(new Option(w.name, w.name)));
         if (db.profile.mainWallet) mainWalletSel.value = db.profile.mainWallet;
 
+        // Cargar categorías personalizadas en los textarea
+        document.getElementById('set-cat-gastos').value = (db.profile.catGastos || defaultCatGastos).join(', ');
+        document.getElementById('set-cat-ingresos').value = (db.profile.catIngresos || defaultCatIngresos).join(', ');
+
         document.getElementById('settings-modal').classList.remove('hidden');
     };
 
@@ -603,9 +631,23 @@
         if(currs.length === 0 || currs.length > 3) return alert("Selecciona entre 1 y 3 monedas.");
         const mainW = document.getElementById('set-main-wallet').value;
 
-        db.profile.type = type; db.profile.currencies = currs; db.profile.mainWallet = mainW; 
+        const catGText = document.getElementById('set-cat-gastos').value;
+        const catIText = document.getElementById('set-cat-ingresos').value;
+
+        db.profile.type = type; 
+        db.profile.currencies = currs; 
+        db.profile.mainWallet = mainW; 
         
-        window.closeSettings(); window.populateCategories(); await window.saveDataCloud();
+        // Guardar categorías personalizadas limpiando espacios vacíos
+        db.profile.catGastos = catGText.split(',').map(s => s.trim()).filter(s => s);
+        db.profile.catIngresos = catIText.split(',').map(s => s.trim()).filter(s => s);
+        
+        if(db.profile.catGastos.length === 0) db.profile.catGastos = ['Otro'];
+        if(db.profile.catIngresos.length === 0) db.profile.catIngresos = ['Otro'];
+
+        window.closeSettings(); 
+        window.populateCategories(); 
+        await window.saveDataCloud();
     };
 
     window.registerUser = async function() {
@@ -662,8 +704,8 @@
         const catSelect = document.getElementById('cat-select');
         catSelect.innerHTML = '';
         
-        let listToUse = catGastos;
-        if (type === 'ingreso') listToUse = catIngresos;
+        let listToUse = (db.profile.catGastos || defaultCatGastos);
+        if (type === 'ingreso') listToUse = (db.profile.catIngresos || defaultCatIngresos);
         if (type === 'transferencia') listToUse = catTransferencias;
 
         listToUse.forEach(c => catSelect.add(new Option(c, c)));
@@ -688,13 +730,13 @@
 
         const multi = document.getElementById('budget-cats-multi');
         multi.innerHTML = '';
-        catGastos.forEach(c => multi.add(new Option(c, c)));
+        (db.profile.catGastos || defaultCatGastos).forEach(c => multi.add(new Option(c, c)));
         document.getElementById('app-profile-badge').innerText = `(${db.profile.type})`;
 
         const fCatSelect = document.getElementById('filter-cat');
         const currentCatFilter = fCatSelect.value;
         fCatSelect.innerHTML = '<option value="">Cualquier Categoría</option>';
-        const allCats = [...new Set([...catGastos, ...catIngresos, ...catTransferencias])].sort();
+        const allCats = [...new Set([...(db.profile.catGastos || defaultCatGastos), ...(db.profile.catIngresos || defaultCatIngresos), ...catTransferencias])].sort();
         allCats.forEach(c => fCatSelect.add(new Option(c, c)));
         fCatSelect.value = currentCatFilter;
 
@@ -784,7 +826,6 @@
         }
     };
 
-    // FUNCIONES DEL SIMULADOR MÚLTIPLE MES
     window.addSimulation = async function() {
         if(!db.simulations) db.simulations = [];
         const editId = document.getElementById('sim-edit-id').value;
@@ -817,7 +858,6 @@
         document.getElementById('sim-desc').value = sim.desc;
         document.getElementById('sim-amount').value = sim.amount;
         
-        // Asignar el valor a la cuenta de origen. Asegura que la moneda coincida visualmente en el select.
         const simWalletSel = document.getElementById('sim-wallet');
         Array.from(simWalletSel.options).forEach(opt => {
             if (opt.value.includes(sim.wallet)) opt.selected = true;
@@ -825,7 +865,7 @@
         
         const selMonths = document.getElementById('sim-month');
         Array.from(selMonths.options).forEach(opt => {
-            opt.selected = (sim.months || []).includes(opt.value) || sim.month === opt.value; // Compatible con registros viejos
+            opt.selected = (sim.months || []).includes(opt.value) || sim.month === opt.value;
         });
         
         document.getElementById('btn-sim-save').innerText = 'Actualizar Simulación';
@@ -923,6 +963,11 @@
                     if(!db.profile) db.profile = { type: 'Personal', currencies: ['CLP', 'USD'] };
                 }
                 if(!db.simulations) db.simulations = [];
+                
+                // Asegurar categorías personalizadas al importar
+                if(db.profile && !db.profile.catGastos) db.profile.catGastos = [...defaultCatGastos];
+                if(db.profile && !db.profile.catIngresos) db.profile.catIngresos = [...defaultCatIngresos];
+
                 await window.saveDataCloud(); 
                 alert("¡Datos cargados y subidos a la nube!"); 
             } catch(err) { alert("Error al leer el archivo."); }
@@ -959,6 +1004,8 @@
                     if(!db.profile) db.profile = { type: 'Personales', currencies: ['CLP', 'USD'] };
                 }
                 if(!db.simulations) db.simulations = [];
+                if(db.profile && !db.profile.catGastos) db.profile.catGastos = [...defaultCatGastos];
+                if(db.profile && !db.profile.catIngresos) db.profile.catIngresos = [...defaultCatIngresos];
 
                 if(!db.onboardingCompleted) {
                     document.getElementById("main-dashboard").classList.add("hidden");
@@ -991,6 +1038,9 @@
     window.saveDataCloud = async function() {
         cleanGhostEntries(); 
         if(!db.simulations) db.simulations = [];
+        if(db.profile && !db.profile.catGastos) db.profile.catGastos = [...defaultCatGastos];
+        if(db.profile && !db.profile.catIngresos) db.profile.catIngresos = [...defaultCatIngresos];
+
         localStorage.setItem('mayucash_local_fallback', JSON.stringify(db)); 
         window.updateUI(); 
         
@@ -1181,12 +1231,12 @@
                 }
             });
 
-            // 2. Aplicar Simulaciones de Eventos Futuros (What-If)
+            // 2. Aplicar Simulaciones de Eventos Futuros
             let currentSimMonth = startMonth + m;
             if (currentSimMonth > 12) currentSimMonth -= 12;
 
             db.simulations.forEach(sim => {
-                let sMonths = sim.months || [sim.month]; // Compatibilidad vieja
+                let sMonths = sim.months || [sim.month]; 
                 if (sMonths.includes(currentSimMonth.toString()) || sMonths.includes(currentSimMonth)) {
                     if(simBalances[sim.wallet] !== undefined) {
                         simBalances[sim.wallet] -= parseFloat(sim.amount);
@@ -1194,7 +1244,7 @@
                 }
             });
 
-            // 3. Guardar puntos para el gráfico
+            // 3. Guardar puntos
             db.wallets.forEach(w => { historyPts[w.name].push(simBalances[w.name] || 0); });
         }
 
@@ -1214,14 +1264,12 @@
         if (chart) chart.destroy();
         chart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: datasets }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10} } } }, scales: { x: { grid: { display: false } } } } });
 
-        // DIBUJAR LISTA DE EVENTOS SIMULADOS EN PANTALLA
         const simList = document.getElementById('sim-list');
         simList.innerHTML = '';
         const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         db.simulations.forEach(sim => {
             let sMonths = sim.months || [sim.month];
             const mNames = sMonths.map(sm => monthNames[parseInt(sm)-1]).join(", ");
-            // Buscar moneda de la billetera
             let wObj = db.wallets.find(w => w.name === sim.wallet);
             let wCurr = wObj ? wObj.currency : 'CLP';
 
