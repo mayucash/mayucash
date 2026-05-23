@@ -66,7 +66,6 @@
             .hero-summary { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; margin: 0 -20px 25px -20px; padding: 0 20px 10px 20px; -webkit-overflow-scrolling: touch; }
             .hero-summary::-webkit-scrollbar { display: none; }
             .hero-card { flex: 0 0 92%; scroll-snap-align: center; padding: 20px; }
-            /* AJUSTE TAMAÑO MOBILE: Controla el desborde y reduce fuente */
             .hero-main-amount { font-size: 1.8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
             .hero-stat { padding: 12px 10px; }
             .hero-stat-value { font-size: 0.7em; }
@@ -85,17 +84,20 @@
         .btn-delete-wallet { position: absolute; top: 2px; right: 2px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 10px; padding: 2px 4px; z-index: 10; }
         .btn-delete-wallet:hover { color: var(--bg-stat-red); }
 
-        /* FORMULARIOS, FILTROS Y TABLAS (MODIFICADOS A UNA SOLA LÍNEA) */
-        #finance-form, #wallet-form, #budget-form { 
-            display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: flex-end; gap: 10px; padding-bottom: 5px; -webkit-overflow-scrolling: touch; 
-        }
-        /* Scrollbar elegante para los formularios horizontales */
-        #finance-form::-webkit-scrollbar, #wallet-form::-webkit-scrollbar, #budget-form::-webkit-scrollbar, .filters-container::-webkit-scrollbar { height: 6px; }
-        #finance-form::-webkit-scrollbar-thumb, #wallet-form::-webkit-scrollbar-thumb, #budget-form::-webkit-scrollbar-thumb, .filters-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        /* TABS (Pestañas de Registro) */
+        .tabs-container { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--border-color); }
+        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 1em; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s; }
+        .tab-btn.active { color: var(--primary-btn); border-bottom-color: var(--primary-btn); }
+        .tab-btn:hover { color: var(--text-dark); }
         
-        .form-group { display: flex; flex-direction: column; gap: 5px; flex: 0 0 auto; }
-        .form-group label { font-size: 0.8em; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
-        button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 0 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; flex: 0 0 auto; white-space: nowrap; }
+        .tab-content { display: none; flex-direction: column; gap: 15px; }
+        .tab-content.active { display: flex; }
+
+        /* FORMULARIOS (Acoplados hacia abajo, responsivos) */
+        .form-row { display: flex; flex-wrap: wrap; gap: 10px; width: 100%; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1 1 150px; }
+        .form-group label { font-size: 0.8em; color: var(--text-muted); font-weight: 600; }
+        button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 0 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; width: 100%; margin-top: 10px;}
         button.btn-primary:hover { opacity: 0.9; }
         
         .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
@@ -108,14 +110,20 @@
         .btn-page { background: #fff; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* BLOQUE DE FILTROS EN UNA LÍNEA */
-        .filters-container { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid var(--border-color); padding-bottom: 10px; }
+        /* BLOQUE DE FILTROS EN UNA LÍNEA (Con scroll horizontal) */
+        .filters-container { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid var(--border-color); padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
+        .filters-container::-webkit-scrollbar { height: 6px; }
+        .filters-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         .filters-container input, .filters-container select { flex: 0 0 auto; width: 150px; height: 36px; padding: 6px 10px; font-size: 13px; }
         .btn-clear-filters { background: var(--bg-stat-red); color: white; border: none; border-radius: 6px; padding: 0 15px; cursor: pointer; height: 36px; font-weight: bold; flex: 0 0 auto; transition: 0.2s; white-space: nowrap; }
         .btn-clear-filters:hover { opacity: 0.9; }
 
+        /* RESPONSIVE LAYOUT INFERIOR */
         .bottom-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        @media (max-width: 850px) { .bottom-layout { grid-template-columns: 1fr; } }
+        @media (max-width: 850px) { 
+            .bottom-layout { grid-template-columns: 1fr; display: flex; flex-direction: column; } 
+        }
+        
         .budget-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 10px; background: #fff; }
         .progress-container { background: #eee; border-radius: 4px; height: 8px; margin: 8px 0; overflow: hidden; }
         .progress-bar { height: 100%; transition: width 0.3s; }
@@ -260,51 +268,54 @@
     </div>
     
     <div class="hero-summary" id="hero-cards-container">
-        </div>
+    </div>
 
     <div class="section">
         <h3 class="section-header">Tus Cuentas (Bancos / Billeteras / Crypto)</h3>
         <div id="accounts-bar" class="accounts-bar"></div>
         <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
-            <form id="wallet-form" onsubmit="event.preventDefault(); window.addWallet();">
-                <div class="form-group" style="flex: 0 0 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
-                <div class="form-group" style="flex: 0 0 130px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
-                <div class="form-group" style="flex: 0 0 80px;"><select id="new-wallet-currency"></select></div>
-                <button type="submit" class="btn-primary">Crear Cuenta</button>
+            <form id="wallet-form" onsubmit="event.preventDefault(); window.addWallet();" style="display: flex; flex-wrap: wrap; gap: 10px; width: 100%;">
+                <div class="form-group" style="flex: 2 1 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
+                <div class="form-group" style="flex: 1 1 120px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
+                <div class="form-group" style="flex: 1 1 80px;"><select id="new-wallet-currency"></select></div>
+                <button type="submit" class="btn-primary" style="flex: 1 1 100%; margin-top:0;">Crear Cuenta</button>
             </form>
         </div>
     </div>
 
     <div class="section">
         <h3 class="section-header">Registrar Movimiento</h3>
-        <form id="finance-form" onsubmit="event.preventDefault(); window.addEntry();">
+        
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="window.switchTab('gasto')">📉 Gasto</button>
+            <button class="tab-btn" onclick="window.switchTab('ingreso')">📈 Ingreso</button>
+            <button class="tab-btn" onclick="window.switchTab('transferencia')">🔄 Transferencia</button>
+        </div>
+
+        <form id="finance-form" onsubmit="event.preventDefault(); window.addEntry();" style="display: flex; flex-direction: column; width: 100%;">
             <input type="hidden" id="edit-id">
-            <div class="form-group" style="flex: 0 0 180px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Sueldo..." required></div>
-            <div class="form-group" style="flex: 0 0 110px;"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
-            <div class="form-group" style="flex: 0 0 80px;">
-                <label>Moneda</label>
-                <select id="currency-select"></select>
+            <input type="hidden" id="type-select" value="gasto"> <div class="form-row">
+                <div class="form-group" style="flex: 2 1 200px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Supermercado..." required></div>
+                <div class="form-group" style="flex: 1 1 120px;"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
+                <div class="form-group" style="flex: 1 1 80px;"><label>Moneda</label><select id="currency-select"></select></div>
             </div>
-            <div class="form-group" style="flex: 0 0 130px;">
-                <label>Tipo</label>
-                <select id="type-select" onchange="window.handleTypeChange()">
-                    <option value="gasto">Gasto</option>
-                    <option value="ingreso">Ingreso</option>
-                    <option value="transferencia">Transferencia</option>
-                </select>
-            </div>
-            <div class="form-group" id="cat-group" style="flex: 0 0 160px;"><label>Categoría</label><select id="cat-select" required></select></div>
             
-            <div class="form-group" id="freq-group" style="flex: 0 0 120px;">
-                <label>Frecuencia</label>
-                <select id="freq-select">
-                    <option value="ocasional">Ocasional</option>
-                    <option value="fijo">Fijo</option>
-                </select>
+            <div class="form-row" style="margin-top: 10px;">
+                <div class="form-group" id="cat-group" style="flex: 2 1 150px;"><label>Categoría</label><select id="cat-select" required></select></div>
+                <div class="form-group" id="freq-group" style="flex: 1 1 150px;">
+                    <label>Frecuencia</label>
+                    <select id="freq-select">
+                        <option value="ocasional">Ocasional</option>
+                        <option value="fijo">Fijo</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group" style="flex: 0 0 150px;"><label id="lbl-wallet-orig">En la Cuenta:</label><select id="wallet-select" onchange="window.handleWalletChange(event)"></select></div>
-            <div class="form-group hidden" id="dest-group" style="flex: 0 0 150px;"><label>Hacia la Cuenta:</label><select id="wallet-dest-select"></select></div>
+            <div class="form-row" style="margin-top: 10px;">
+                <div class="form-group" style="flex: 1 1 150px;"><label id="lbl-wallet-orig">Cuenta Origen:</label><select id="wallet-select" onchange="window.handleWalletChange(event)"></select></div>
+                <div class="form-group hidden" id="dest-group" style="flex: 1 1 150px;"><label>Cuenta Destino:</label><select id="wallet-dest-select"></select></div>
+            </div>
+
             <button type="submit" class="btn-primary" id="btn-save">Guardar Registro</button>
         </form>
     </div>
@@ -337,18 +348,18 @@
     </div>
 
     <div class="bottom-layout">
-        <div class="section">
+        <div class="section" style="margin-bottom: 0;">
             <h3 class="section-header">Metas y Presupuestos</h3>
-            <form id="budget-form" onsubmit="event.preventDefault(); window.addBudget();">
-                <div class="form-group" style="flex: 0 0 180px;"><input type="text" id="budget-name" placeholder="Ej: Tarjetas" required></div>
-                <div class="form-group" style="flex: 0 0 130px;"><input type="number" id="budget-limit" placeholder="Monto Tope" required></div>
-                <div class="form-group" style="flex: 0 0 200px;"><select id="budget-cats-multi" multiple style="height:42px;" required></select></div>
-                <button type="submit" class="btn-primary">Crear Meta</button>
+            <form id="budget-form" onsubmit="event.preventDefault(); window.addBudget();" style="display: flex; flex-wrap: wrap; gap: 10px; width: 100%;">
+                <div class="form-group" style="flex: 1 1 150px;"><input type="text" id="budget-name" placeholder="Ej: Tarjetas" required></div>
+                <div class="form-group" style="flex: 1 1 100px;"><input type="number" id="budget-limit" placeholder="Monto Tope" required></div>
+                <div class="form-group" style="flex: 2 1 100%;"><select id="budget-cats-multi" multiple style="height:60px;" required></select></div>
+                <button type="submit" class="btn-primary" style="margin-top:0;">Crear Meta</button>
             </form>
             <div id="budget-list-container" style="margin-top: 15px;"></div>
         </div>
 
-        <div class="section">
+        <div class="section" style="margin-bottom: 0;">
             <h3 class="section-header">Predicción de Flujo a 6 Meses</h3>
             <p style="font-size: 0.8em; color: var(--text-muted); margin-top: 0; margin-bottom: 5px;">
                 Simula Ingresos, Gastos y Transferencias "Fijas".<br>
@@ -359,8 +370,8 @@
             </div>
             <div id="projection-details" class="projection-list"></div>
             <div style="margin-top: 20px; display:flex; gap:10px;">
-                <button class="btn-primary" onclick="window.exportData()" style="flex:1; background: #607d8b;">💾 Exportar a PC</button>
-                <button class="btn-primary" onclick="document.getElementById('importFile').click()" style="flex:1; background: #607d8b;">📂 Cargar Archivo</button>
+                <button class="btn-primary" onclick="window.exportData()" style="flex:1; background: #607d8b; padding:0 10px; font-size:0.9em;">💾 Exportar a PC</button>
+                <button class="btn-primary" onclick="document.getElementById('importFile').click()" style="flex:1; background: #607d8b; padding:0 10px; font-size:0.9em;">📂 Cargar Archivo</button>
                 <input type="file" id="importFile" onchange="window.importData(event)" style="display: none;">
             </div>
         </div>
@@ -372,7 +383,6 @@
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
-    // 1. LLAVES DE FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyCKQpME2flx_ZY5XAv3Q79esBW9cT0JuYs",
         authDomain: "mayucash-1ce7f.firebaseapp.com",
@@ -391,11 +401,8 @@
 
     let currentUser = null;
     let realtimeUnsubscribe = null;
-    
-    // ESTRUCTURA BASE
     let db = JSON.parse(localStorage.getItem('mayucash_local_fallback')) || null;
 
-    // CONSTANTES
     const catGastos = ["Arriendo", "Gastos Comunes", "Luz", "Agua", "Gas", "Internet", "Móvil", "Supermercado", "Transporte", "Salidas/Ocio", "Compras", "Tarjetas de Crédito", "Créditos", "Pensión", "Aporte Familia", "Mascotas", "Salud", "Vacaciones", "Mantenimiento", "Otro"];
     const catIngresos = ["Salario Principal", "Ahorro", "Rendimientos/Inversión", "Devolución", "Ventas Extras", "Saldo Inicial"];
     const catTransferencias = ["Ahorro", "Inversión", "Pago Tarjeta", "Movimiento Interno", "Fondo Emergencia", "Otro"];
@@ -442,10 +449,7 @@
     // ==============================================
     window.toggleDictation = function() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("Tu navegador no soporta el dictado por voz. Intenta desde Google Chrome o Safari.");
-            return;
-        }
+        if (!SpeechRecognition) return alert("Tu navegador no soporta el dictado por voz. Intenta desde Google Chrome o Safari.");
         
         const recognition = new SpeechRecognition();
         recognition.lang = 'es-CL'; 
@@ -453,27 +457,21 @@
         recognition.maxAlternatives = 1;
 
         const fab = document.getElementById('fab-mic');
-        
         recognition.onstart = function() { fab.classList.add('recording'); };
 
         recognition.onresult = function(event) {
             let transcript = event.results[0][0].transcript.toLowerCase();
             
-            // 1. Extraer el monto
             const amountMatch = transcript.match(/\d+/);
             const amount = amountMatch ? parseFloat(amountMatch[0]) : 0;
             if(amount > 0) document.getElementById('amount').value = amount;
 
-            // 2. Establecer Valores por Defecto
-            let typeValue = 'gasto'; // Por defecto asumimos que es un gasto
+            let typeValue = 'gasto';
             let freqValue = 'ocasional';
-            
-            // Si el usuario configuró una cuenta principal, usamos esa. Si no, usamos la primera que exista.
             let walletValue = (db.profile && db.profile.mainWallet) ? db.profile.mainWallet : (db.wallets.length > 0 ? db.wallets[0].name : '');
             let catValue = 'Otro';
             let descValue = transcript.trim().charAt(0).toUpperCase() + transcript.trim().slice(1);
 
-            // 3. Reglas Inteligentes (El "Cerebro")
             if (transcript.includes('agua') || transcript.includes('luz') || transcript.includes('gas')) {
                 if (amount > 3000) {
                     catValue = 'Luz/Agua/Gas';
@@ -495,27 +493,21 @@
                 catValue = 'Supermercado';
             }
 
-            // 4. Buscar explícitamente si el usuario dictó una cuenta diferente a la principal
             if(db && db.wallets) {
                 const foundWallet = db.wallets.find(w => transcript.includes(w.name.toLowerCase()));
                 if(foundWallet) walletValue = foundWallet.name;
             }
 
-            // Aplicar los datos al formulario
-            document.getElementById('type-select').value = typeValue;
-            window.handleTypeChange(); 
+            window.switchTab(typeValue); // Cambia la pestaña automáticamente
             document.getElementById('freq-select').value = freqValue;
             document.getElementById('wallet-select').value = walletValue;
             window.handleWalletChange({target: {value: walletValue}});
             
-            // Retraso de 100ms para asegurar que el select de categorías se actualizó al cambiar el tipo
             setTimeout(() => {
                 const catSelect = document.getElementById('cat-select');
                 let optionExists = Array.from(catSelect.options).some(o => o.value === catValue);
                 if(optionExists) catSelect.value = catValue;
                 document.getElementById('desc').value = descValue;
-                
-                // Mover la pantalla al formulario
                 document.getElementById('finance-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 100);
         };
@@ -532,7 +524,6 @@
     // ==============================================
     // ONBOARDING & CONFIGURACIÓN
     // ==============================================
-
     window.limitCurrencies = function(selectObj, warningId = 'ob-curr-warning') {
         const selected = Array.from(selectObj.selectedOptions);
         if (selected.length > 3) {
@@ -553,13 +544,7 @@
         const acc2Name = document.getElementById('ob-acc2-name').value.trim();
         const acc2Bal = parseFloat(document.getElementById('ob-acc2-bal').value) || 0;
 
-        db = {
-            profile: { type: type, currencies: currs, mainWallet: acc1Name },
-            wallets: [],
-            months: {},
-            privacy: false,
-            onboardingCompleted: true
-        };
+        db = { profile: { type: type, currencies: currs, mainWallet: acc1Name }, wallets: [], months: {}, privacy: false, onboardingCompleted: true };
 
         const mainCurr = currs[0];
         db.wallets.push({ name: acc1Name, currency: mainCurr });
@@ -580,13 +565,9 @@
     window.openSettings = function() {
         if(!db || !db.profile) return;
         document.getElementById('set-type').value = db.profile.type;
-        
         const selCurrencies = document.getElementById('set-currencies');
-        Array.from(selCurrencies.options).forEach(opt => {
-            opt.selected = db.profile.currencies.includes(opt.value);
-        });
+        Array.from(selCurrencies.options).forEach(opt => opt.selected = db.profile.currencies.includes(opt.value));
 
-        // Llenar selector de cuenta principal
         const mainWalletSel = document.getElementById('set-main-wallet');
         mainWalletSel.innerHTML = '';
         db.wallets.forEach(w => mainWalletSel.add(new Option(w.name, w.name)));
@@ -603,19 +584,14 @@
         if(currs.length === 0 || currs.length > 3) return alert("Selecciona entre 1 y 3 monedas.");
         const mainW = document.getElementById('set-main-wallet').value;
 
-        db.profile.type = type;
-        db.profile.currencies = currs;
-        db.profile.mainWallet = mainW; // Guardamos la cuenta principal
+        db.profile.type = type; db.profile.currencies = currs; db.profile.mainWallet = mainW; 
         
-        window.closeSettings();
-        window.populateCategories();
-        await window.saveDataCloud();
+        window.closeSettings(); window.populateCategories(); await window.saveDataCloud();
     };
 
     // ==============================================
-    // FUNCIONES BÁSICAS (AUTH & UI)
+    // FUNCIONES BÁSICAS Y TABS
     // ==============================================
-
     window.registerUser = async function() {
         if(!auth) return alert("Firebase no conectado.");
         const email = document.getElementById("auth-email").value;
@@ -633,20 +609,20 @@
         catch(err) { alert("Error de inicio de sesión. Revisa tus datos."); }
     };
 
-    window.logoutUser = function() { 
-        if(auth) signOut(auth); 
-        if(realtimeUnsubscribe) realtimeUnsubscribe();
-    };
-
+    window.logoutUser = function() { if(auth) signOut(auth); if(realtimeUnsubscribe) realtimeUnsubscribe(); };
     window.togglePrivacy = async function() { db.privacy = !db.privacy; await window.saveDataCloud(); };
 
-    window.handleTypeChange = function() {
-        const type = document.getElementById('type-select').value;
+    // FUNCIÓN PARA LAS TABS
+    window.switchTab = function(type) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        
+        document.getElementById('type-select').value = type;
         const isTrf = type === 'transferencia';
-        document.getElementById('cat-group').classList.remove('hidden');
+        
         document.getElementById('dest-group').classList.toggle('hidden', !isTrf);
-        document.getElementById('cat-select').required = true;
-        document.getElementById('lbl-wallet-orig').innerText = isTrf ? "Origen:" : "En la Cuenta:";
+        document.getElementById('lbl-wallet-orig').innerText = isTrf ? "Cuenta Origen:" : "En la Cuenta:";
+        
         window.populateCategories();
     };
 
@@ -691,10 +667,8 @@
         const multi = document.getElementById('budget-cats-multi');
         multi.innerHTML = '';
         catGastos.forEach(c => multi.add(new Option(c, c)));
-        
         document.getElementById('app-profile-badge').innerText = `(${db.profile.type})`;
 
-        // ACTUALIZACIÓN DE FILTROS DESPLEGABLES
         const fCatSelect = document.getElementById('filter-cat');
         const currentCatFilter = fCatSelect.value;
         fCatSelect.innerHTML = '<option value="">Cualquier Categoría</option>';
@@ -705,21 +679,16 @@
         const fWalletSelect = document.getElementById('filter-wallet');
         const currentWalletFilter = fWalletSelect.value;
         fWalletSelect.innerHTML = '<option value="">Cualquier Cuenta</option>';
-        if(db && db.wallets) {
-            db.wallets.forEach(w => fWalletSelect.add(new Option(w.name, w.name)));
-        }
+        if(db && db.wallets) db.wallets.forEach(w => fWalletSelect.add(new Option(w.name, w.name)));
         fWalletSelect.value = currentWalletFilter;
 
         const fCurrSelect = document.getElementById('filter-currency');
         const currentCurrFilter = fCurrSelect.value;
         fCurrSelect.innerHTML = '<option value="">Cualquier Moneda</option>';
-        if(db && db.profile && db.profile.currencies) {
-            db.profile.currencies.forEach(c => fCurrSelect.add(new Option(c, c)));
-        }
+        if(db && db.profile && db.profile.currencies) db.profile.currencies.forEach(c => fCurrSelect.add(new Option(c, c)));
         fCurrSelect.value = currentCurrFilter;
     };
 
-    // LIMPIAR FILTROS
     window.clearFilters = function() {
         document.getElementById('filter-note').value = '';
         document.getElementById('filter-amount').value = '';
@@ -727,8 +696,7 @@
         document.getElementById('filter-wallet').value = '';
         document.getElementById('filter-cat').value = '';
         document.getElementById('filter-currency').value = '';
-        currentPage = 1;
-        window.updateUI();
+        currentPage = 1; window.updateUI();
     };
 
     // FORMULARIOS DE DATA
@@ -741,8 +709,6 @@
         if(db.wallets.find(w => w.name.toLowerCase() === name.toLowerCase())) return alert(`La cuenta "${name}" ya existe.`);
 
         db.wallets.push({ name, currency: curr });
-        
-        // Si no hay cuenta principal, asignamos esta
         if (!db.profile.mainWallet) db.profile.mainWallet = name;
 
         const key = `${selYear.value}-${selMonth.value}`;
@@ -750,8 +716,7 @@
         db.months[key].entries.push({ id: Date.now(), desc: "Saldo Inicial", amount: bal, type: 'ingreso', wallet: name, currency: curr, category: 'Saldo Inicial', freq: 'ocasional' });
         
         document.getElementById('wallet-form').reset();
-        window.populateCategories();
-        await window.saveDataCloud();
+        window.populateCategories(); await window.saveDataCloud();
     };
 
     window.addEntry = async function() {
@@ -780,12 +745,8 @@
         document.getElementById('btn-save').innerText = 'Guardar Registro';
         document.getElementById('finance-form').reset(); 
         
-        // Resetear a cuenta principal
-        if(db.profile && db.profile.mainWallet) {
-            document.getElementById('wallet-select').value = db.profile.mainWallet;
-        }
-
-        window.handleTypeChange();
+        if(db.profile && db.profile.mainWallet) document.getElementById('wallet-select').value = db.profile.mainWallet;
+        window.populateCategories(); // Reset tabs
         await window.saveDataCloud(); 
     };
 
@@ -802,7 +763,6 @@
         }
     };
 
-    // ACCIONES TABLA Y DRAG
     window.deleteWallet = async function(name) {
         let hasMovements = false;
         Object.values(db.months).forEach(m => {
@@ -815,8 +775,7 @@
             Object.keys(db.months).forEach(k => {
                 if(db.months[k].entries) db.months[k].entries = db.months[k].entries.filter(e => !(e.wallet === name && e.category === 'Saldo Inicial'));
             });
-            window.populateCategories(); 
-            await window.saveDataCloud(); 
+            window.populateCategories(); await window.saveDataCloud(); 
         }
     };
     window.editEntry = function(id) {
@@ -826,8 +785,13 @@
         document.getElementById('edit-id').value = e.id;
         document.getElementById('desc').value = e.desc;
         document.getElementById('amount').value = e.amount;
-        document.getElementById('type-select').value = e.type;
-        window.handleTypeChange();
+        
+        // Simular clic en la tab correspondiente
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        if(e.type === 'gasto') tabBtns[0].click();
+        if(e.type === 'ingreso') tabBtns[1].click();
+        if(e.type === 'transferencia') tabBtns[2].click();
+
         document.getElementById('freq-select').value = e.freq || 'ocasional';
         document.getElementById('wallet-select').value = e.wallet;
         document.getElementById('currency-select').value = e.currency || 'CLP';
@@ -867,7 +831,6 @@
     };
     window.handleDragEnd = function(e) { e.currentTarget.classList.remove('dragging'); draggedIdx = null; document.querySelectorAll('.account-pill').forEach(p => p.classList.remove('drag-over')); };
 
-    // IMPORT / EXPORT
     window.exportData = function() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
         const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `MayuCash_Respaldo.json`); dl.click();
@@ -892,7 +855,6 @@
     // ==============================================
     // CONEXIÓN FIREBASE REALTIME
     // ==============================================
-    
     if(auth) {
         onAuthStateChanged(auth, async (user) => {
             if(user) {
@@ -929,9 +891,7 @@
                     document.getElementById("onboarding-screen").classList.add("hidden");
                     document.getElementById("main-dashboard").classList.remove("hidden");
                     
-                    if(!db.profile.mainWallet && db.wallets.length > 0) {
-                        db.profile.mainWallet = db.wallets[0].name;
-                    }
+                    if(!db.profile.mainWallet && db.wallets.length > 0) db.profile.mainWallet = db.wallets[0].name;
 
                     localStorage.setItem('mayucash_local_fallback', JSON.stringify(db));
                     document.getElementById('sync-indicator').innerText = "✅ Sincronizado";
@@ -965,9 +925,8 @@
     };
 
     // ==============================================
-    // DIBUJADO DE LA INTERFAZ
+    // DIBUJADO DE LA INTERFAZ Y FILTROS
     // ==============================================
-    
     window.formatAmount = function(amt, currency = 'CLP', showSign = false) { 
         if (db.privacy) return "****"; 
         const prefix = showSign ? (amt >= 0 ? '+' : '') : '';
@@ -985,10 +944,7 @@
         let mInc = {}, mExp = {}, mCount = {}, totalBal = {};
         let walletTotals = {}, walletFixedRates = {}, expensesByCat = {};
         
-        db.profile.currencies.forEach(c => {
-            mInc[c] = 0; mExp[c] = 0; mCount[c] = 0; totalBal[c] = 0;
-        });
-        
+        db.profile.currencies.forEach(c => { mInc[c] = 0; mExp[c] = 0; mCount[c] = 0; totalBal[c] = 0; });
         db.wallets.forEach(w => { walletTotals[w.name] = 0; walletFixedRates[w.name] = 0; });
 
         Object.keys(db.months).forEach(k => {
@@ -1064,10 +1020,8 @@
         const fCat = document.getElementById('filter-cat').value;
         const fCurr = document.getElementById('filter-currency').value;
 
-        // Comenzamos con todos los registros del mes (sin Saldo Inicial)
         let filteredEntries = (data.entries || []).filter(e => e.category !== 'Saldo Inicial').slice().reverse();
 
-        // Aplicamos filtros si tienen algún valor escrito/seleccionado
         if (fNote) filteredEntries = filteredEntries.filter(e => e.desc.toLowerCase().includes(fNote));
         if (fAmt) filteredEntries = filteredEntries.filter(e => e.amount === parseFloat(fAmt));
         if (fType) filteredEntries = filteredEntries.filter(e => e.type === fType);
