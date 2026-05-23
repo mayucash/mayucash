@@ -62,15 +62,6 @@
         .bg-rojo-stat { background-color: var(--bg-stat-red); }
         .bg-amarillo-stat { background-color: var(--bg-stat-yellow); }
 
-        @media (max-width: 850px) { 
-            .hero-summary { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; margin: 0 -20px 25px -20px; padding: 0 20px 10px 20px; -webkit-overflow-scrolling: touch; }
-            .hero-summary::-webkit-scrollbar { display: none; }
-            .hero-card { flex: 0 0 92%; scroll-snap-align: center; padding: 20px; }
-            .hero-main-amount { font-size: 1.8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .hero-stat { padding: 12px 10px; }
-            .hero-stat-value { font-size: 0.7em; }
-        }
-
         /* SECCIONES Y DRAG & DROP */
         .section { background: var(--bg-card); padding: 22px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color); position: relative; }
         .section-header { margin-top: 0; margin-bottom: 18px; font-size: 1.1em; color: var(--text-dark); font-weight: 600; padding-bottom: 8px; border-bottom: 2px solid var(--border-color); }
@@ -85,21 +76,32 @@
         .btn-delete-wallet:hover { color: var(--bg-stat-red); }
 
         /* TABS (Pestañas de Registro) */
-        .tabs-container { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--border-color); }
-        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 1em; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s; }
+        .tabs-container { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--border-color); overflow-x: auto; }
+        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 1em; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s; white-space: nowrap; }
         .tab-btn.active { color: var(--primary-btn); border-bottom-color: var(--primary-btn); }
         .tab-btn:hover { color: var(--text-dark); }
-        
-        .tab-content { display: none; flex-direction: column; gap: 15px; }
-        .tab-content.active { display: flex; }
 
-        /* FORMULARIOS (Acoplados hacia abajo, responsivos) */
-        .form-row { display: flex; flex-wrap: wrap; gap: 10px; width: 100%; }
-        .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1 1 150px; }
-        .form-group label { font-size: 0.8em; color: var(--text-muted); font-weight: 600; }
-        button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 0 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; width: 100%; margin-top: 10px;}
-        button.btn-primary:hover { opacity: 0.9; }
+        /* ========================================================
+           SISTEMA DINÁMICO DE FORMULARIOS (1 Línea vs Acoplado)
+           ======================================================== */
+        .form-flex { display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: flex-end; gap: 10px; width: 100%; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
+        .form-flex::-webkit-scrollbar, .filters-container::-webkit-scrollbar { height: 6px; }
+        .form-flex::-webkit-scrollbar-thumb, .filters-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         
+        .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1 1 auto; min-width: 100px; }
+        .form-group label { font-size: 0.8em; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+        
+        button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 0 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; flex: 0 0 auto; white-space: nowrap; margin-top: 0; }
+        button.btn-primary:hover { opacity: 0.9; }
+
+        @media (max-width: 850px) {
+            .form-flex { flex-wrap: wrap; overflow-x: visible; }
+            .full-width-mob { flex: 1 1 100% !important; min-width: 100% !important; }
+            .half-width-mob { flex: 1 1 45% !important; min-width: 45% !important; }
+            button.btn-primary { flex: 1 1 100% !important; min-width: 100% !important; }
+        }
+
+        /* TABLAS Y EXTRAS */
         .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 0.8em; color: var(--text-muted); font-weight: 600; }
@@ -110,18 +112,23 @@
         .btn-page { background: #fff; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* BLOQUE DE FILTROS EN UNA LÍNEA (Con scroll horizontal) */
+        /* BLOQUE DE FILTROS EN UNA LÍNEA */
         .filters-container { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid var(--border-color); padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
-        .filters-container::-webkit-scrollbar { height: 6px; }
-        .filters-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         .filters-container input, .filters-container select { flex: 0 0 auto; width: 150px; height: 36px; padding: 6px 10px; font-size: 13px; }
         .btn-clear-filters { background: var(--bg-stat-red); color: white; border: none; border-radius: 6px; padding: 0 15px; cursor: pointer; height: 36px; font-weight: bold; flex: 0 0 auto; transition: 0.2s; white-space: nowrap; }
         .btn-clear-filters:hover { opacity: 0.9; }
 
-        /* RESPONSIVE LAYOUT INFERIOR */
+        /* RESPONSIVE GENERAL INFERIOR */
         .bottom-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media (max-width: 850px) { 
             .bottom-layout { grid-template-columns: 1fr; display: flex; flex-direction: column; } 
+            .hero-summary { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; margin: 0 -20px 25px -20px; padding: 0 20px 10px 20px; -webkit-overflow-scrolling: touch; }
+            .hero-summary::-webkit-scrollbar { display: none; }
+            .hero-card { flex: 0 0 92%; scroll-snap-align: center; padding: 20px; }
+            .hero-main-amount { font-size: 1.8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .hero-stat { padding: 12px 10px; }
+            .hero-stat-value { font-size: 0.7em; }
+            .tab-btn { font-size: 0.85em; padding: 10px 8px; } /* Tabs más pequeñas */
         }
         
         .budget-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 10px; background: #fff; }
@@ -274,11 +281,11 @@
         <h3 class="section-header">Tus Cuentas (Bancos / Billeteras / Crypto)</h3>
         <div id="accounts-bar" class="accounts-bar"></div>
         <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
-            <form id="wallet-form" onsubmit="event.preventDefault(); window.addWallet();" style="display: flex; flex-wrap: wrap; gap: 10px; width: 100%;">
-                <div class="form-group" style="flex: 2 1 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
-                <div class="form-group" style="flex: 1 1 120px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
-                <div class="form-group" style="flex: 1 1 80px;"><select id="new-wallet-currency"></select></div>
-                <button type="submit" class="btn-primary" style="flex: 1 1 100%; margin-top:0;">Crear Cuenta</button>
+            <form id="wallet-form" class="form-flex" onsubmit="event.preventDefault(); window.addWallet();">
+                <div class="form-group full-width-mob"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
+                <div class="form-group half-width-mob"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
+                <div class="form-group half-width-mob"><select id="new-wallet-currency"></select></div>
+                <button type="submit" class="btn-primary full-width-mob">Crear Cuenta</button>
             </form>
         </div>
     </div>
@@ -292,31 +299,19 @@
             <button class="tab-btn" onclick="window.switchTab('transferencia')">🔄 Transferencia</button>
         </div>
 
-        <form id="finance-form" onsubmit="event.preventDefault(); window.addEntry();" style="display: flex; flex-direction: column; width: 100%;">
+        <form id="finance-form" class="form-flex" onsubmit="event.preventDefault(); window.addEntry();">
             <input type="hidden" id="edit-id">
-            <input type="hidden" id="type-select" value="gasto"> <div class="form-row">
-                <div class="form-group" style="flex: 2 1 200px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Supermercado..." required></div>
-                <div class="form-group" style="flex: 1 1 120px;"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
-                <div class="form-group" style="flex: 1 1 80px;"><label>Moneda</label><select id="currency-select"></select></div>
-            </div>
+            <input type="hidden" id="type-select" value="gasto"> <div class="form-group full-width-mob"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Supermercado..." required></div>
+            <div class="form-group half-width-mob"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
+            <div class="form-group half-width-mob"><label>Moneda</label><select id="currency-select"></select></div>
             
-            <div class="form-row" style="margin-top: 10px;">
-                <div class="form-group" id="cat-group" style="flex: 2 1 150px;"><label>Categoría</label><select id="cat-select" required></select></div>
-                <div class="form-group" id="freq-group" style="flex: 1 1 150px;">
-                    <label>Frecuencia</label>
-                    <select id="freq-select">
-                        <option value="ocasional">Ocasional</option>
-                        <option value="fijo">Fijo</option>
-                    </select>
-                </div>
-            </div>
+            <div class="form-group half-width-mob" id="cat-group"><label>Categoría</label><select id="cat-select" required></select></div>
+            <div class="form-group half-width-mob" id="freq-group"><label>Frecuencia</label><select id="freq-select"><option value="ocasional">Ocasional</option><option value="fijo">Fijo</option></select></div>
 
-            <div class="form-row" style="margin-top: 10px;">
-                <div class="form-group" style="flex: 1 1 150px;"><label id="lbl-wallet-orig">Cuenta Origen:</label><select id="wallet-select" onchange="window.handleWalletChange(event)"></select></div>
-                <div class="form-group hidden" id="dest-group" style="flex: 1 1 150px;"><label>Cuenta Destino:</label><select id="wallet-dest-select"></select></div>
-            </div>
-
-            <button type="submit" class="btn-primary" id="btn-save">Guardar Registro</button>
+            <div class="form-group half-width-mob"><label id="lbl-wallet-orig">En la Cuenta:</label><select id="wallet-select" onchange="window.handleWalletChange(event)"></select></div>
+            <div class="form-group half-width-mob hidden" id="dest-group"><label>Cuenta Destino:</label><select id="wallet-dest-select"></select></div>
+            
+            <button type="submit" class="btn-primary full-width-mob" id="btn-save">Guardar Registro</button>
         </form>
     </div>
 
@@ -340,7 +335,7 @@
 
         <div class="table-responsive">
             <table id="entries-table">
-                <thead><tr><th>Cuenta</th><th>Tipo</th><th>Cat.</th><th>Nota</th><th>Monto</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Nota</th><th>Monto</th><th>Cat.</th><th>Cuenta</th><th>Tipo</th><th>Acciones</th></tr></thead>
                 <tbody id="entries-body"></tbody>
             </table>
         </div>
@@ -350,11 +345,11 @@
     <div class="bottom-layout">
         <div class="section" style="margin-bottom: 0;">
             <h3 class="section-header">Metas y Presupuestos</h3>
-            <form id="budget-form" onsubmit="event.preventDefault(); window.addBudget();" style="display: flex; flex-wrap: wrap; gap: 10px; width: 100%;">
-                <div class="form-group" style="flex: 1 1 150px;"><input type="text" id="budget-name" placeholder="Ej: Tarjetas" required></div>
-                <div class="form-group" style="flex: 1 1 100px;"><input type="number" id="budget-limit" placeholder="Monto Tope" required></div>
-                <div class="form-group" style="flex: 2 1 100%;"><select id="budget-cats-multi" multiple style="height:60px;" required></select></div>
-                <button type="submit" class="btn-primary" style="margin-top:0;">Crear Meta</button>
+            <form id="budget-form" class="form-flex" onsubmit="event.preventDefault(); window.addBudget();">
+                <div class="form-group full-width-mob"><input type="text" id="budget-name" placeholder="Ej: Tarjetas" required></div>
+                <div class="form-group half-width-mob"><input type="number" id="budget-limit" placeholder="Monto Tope" required></div>
+                <div class="form-group full-width-mob"><select id="budget-cats-multi" multiple style="height:42px;" required></select></div>
+                <button type="submit" class="btn-primary full-width-mob">Crear Meta</button>
             </form>
             <div id="budget-list-container" style="margin-top: 15px;"></div>
         </div>
@@ -786,7 +781,6 @@
         document.getElementById('desc').value = e.desc;
         document.getElementById('amount').value = e.amount;
         
-        // Simular clic en la tab correspondiente
         const tabBtns = document.querySelectorAll('.tab-btn');
         if(e.type === 'gasto') tabBtns[0].click();
         if(e.type === 'ingreso') tabBtns[1].click();
@@ -1039,7 +1033,15 @@
         pagedEntries.forEach(e => {
             let route = e.type === 'transferencia' ? `${e.wallet} ➔ ${e.walletDest}` : e.wallet;
             let color = e.type === 'ingreso' ? 'text-green' : (e.type === 'gasto' ? 'text-red' : '');
-            body.innerHTML += `<tr><td><b>${route}</b></td><td>${e.type.toUpperCase()}</td><td>${e.category}</td><td>${e.desc}</td><td class="${color}">${window.formatAmount(e.amount, e.currency)}</td><td><button type="button" class="btn-table" onclick="window.editEntry(${e.id})">✏️</button><button type="button" class="btn-table" onclick="window.deleteEntry(${e.id})" style="color:var(--bg-stat-red)">✕</button></td></tr>`;
+            // REORDEN DE COLUMNAS: Nota | Monto | Cat. | Cuenta | Tipo | Acciones
+            body.innerHTML += `<tr>
+                <td>${e.desc}</td>
+                <td class="${color}"><b>${window.formatAmount(e.amount, e.currency)}</b></td>
+                <td>${e.category}</td>
+                <td>${route}</td>
+                <td>${e.type.toUpperCase()}</td>
+                <td><button type="button" class="btn-table" onclick="window.editEntry(${e.id})">✏️</button><button type="button" class="btn-table" onclick="window.deleteEntry(${e.id})" style="color:var(--bg-stat-red)">✕</button></td>
+            </tr>`;
         });
         
         document.getElementById('pagination-controls').innerHTML = `<button type="button" class="btn-page" onclick="window.changePage(-1)" ${currentPage === 1 ? 'disabled' : ''}>Anterior</button><span>Mostrando ${filteredEntries.length > 0 ? startIndex + 1 : 0}-${Math.min(startIndex + itemsPerPage, filteredEntries.length)} de ${filteredEntries.length}</span><button type="button" class="btn-page" onclick="window.changePage(1)" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente</button>`;
