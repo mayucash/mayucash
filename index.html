@@ -182,7 +182,7 @@
         </select>
 
         <label>Selecciona tus Monedas (Máx. 3)</label>
-        <select id="ob-currencies" multiple required style="height: 120px;" onchange="window.limitCurrencies(this)">
+        <select id="ob-currencies" multiple required style="height: 120px;" onchange="window.limitCurrencies(this, 'ob-curr-warning')">
             <option value="CLP" selected>CLP - Peso Chileno</option>
             <option value="USD" selected>USD - Dólar Estadounidense</option>
             <option value="EUR">EUR - Euro</option>
@@ -376,7 +376,14 @@
         </div>
 
         <div class="section" style="margin-bottom: 0;">
-            <h3 class="section-header">Predicción de Flujo a 6 Meses</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 18px;">
+                <h3 class="section-header" style="border:none; padding:0; margin:0;">Predicción de Flujo</h3>
+                <select id="chart-type" onchange="window.updateUI()" style="height:32px; font-size:12px; padding:0 10px; width:auto; border-radius:6px; margin:0;">
+                    <option value="line">📈 Línea + Detalle</option>
+                    <option value="bar">📊 Barras (Interactivo)</option>
+                </select>
+            </div>
+            
             <p style="font-size: 0.8em; color: var(--text-muted); margin-top: 0; margin-bottom: 5px;">
                 Simula Ingresos, Gastos y Transferencias "Fijas".<br>
                 <b>*Arriendo:</b> Aplica aumento compuesto IPC del 1.2% cada 3 meses.
@@ -1246,44 +1253,59 @@
 
         const datasets = [];
         const chartColors = ['#1a2a6c', '#0F9D58', '#E67E22', '#8e44ad', '#16a085', '#c0392b', '#2c3e50']; 
+        
+        // LEER TIPO DE GRÁFICO ELEGIDO
+        const chartType = document.getElementById('chart-type') ? document.getElementById('chart-type').value : 'line';
+        
         const detailDiv = document.getElementById('projection-details');
-        
-        // --- NUEVA TABLA DETALLADA DE MESES COMO EN EXCEL ---
-        detailDiv.innerHTML = '<h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Saldo proyectado a fin de mes:</h5>';
-        
-        const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+        detailDiv.innerHTML = '';
 
         db.wallets.forEach((w, index) => {
             const dataPts = historyPts[w.name];
-            datasets.push({ label: `${w.name} (${w.currency})`, data: dataPts, borderColor: chartColors[index % chartColors.length], fill: false, tension: 0.3 });
+            datasets.push({ label: `${w.name} (${w.currency})`, data: dataPts, borderColor: chartColors[index % chartColors.length], backgroundColor: chartColors[index % chartColors.length], fill: false, tension: 0.3 });
             
-            let html = `<div class="projection-item" style="flex-direction:column; align-items:flex-start; border:none; padding:0; margin-bottom:15px;">`;
-            html += `<strong style="font-size:0.9em; color:var(--text-dark); margin-bottom:5px;">🏦 ${w.name}</strong>`;
-            html += `<div style="display:flex; gap:8px; overflow-x:auto; width:100%; padding-bottom:8px; -webkit-overflow-scrolling: touch;">`;
-            
-            for(let m = 1; m <= 6; m++) {
-                let currentSimMonth = startMonth + m;
-                if (currentSimMonth > 12) currentSimMonth -= 12;
-                let mName = monthNames[currentSimMonth - 1];
-                let amt = window.formatAmount(dataPts[m], w.currency);
-                let colorClass = dataPts[m] < 0 ? 'color: var(--bg-stat-red);' : 'color: var(--text-dark);';
+            // SOLO DIBUJAR LA TABLA EN MODO LÍNEA
+            if(chartType === 'line') {
+                if (index === 0) detailDiv.innerHTML = '<h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Saldo proyectado a fin de mes:</h5>';
+                const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+                let html = `<div class="projection-item" style="flex-direction:column; align-items:flex-start; border:none; padding:0; margin-bottom:15px;">`;
+                html += `<strong style="font-size:0.9em; color:var(--text-dark); margin-bottom:5px;">🏦 ${w.name}</strong>`;
+                html += `<div style="display:flex; gap:8px; overflow-x:auto; width:100%; padding-bottom:8px; -webkit-overflow-scrolling: touch;">`;
                 
-                html += `<div style="background:#fff; border:1px solid var(--border-color); padding:6px 10px; border-radius:6px; min-width:90px; text-align:center; flex-shrink:0;">
-                            <div style="font-size:0.75em; color:var(--text-muted); text-transform:uppercase;">${mName}</div>
-                            <div style="font-weight:bold; font-size:0.9em; ${colorClass}">${amt}</div>
-                         </div>`;
+                for(let m = 1; m <= 6; m++) {
+                    let currentSimMonth = startMonth + m;
+                    if (currentSimMonth > 12) currentSimMonth -= 12;
+                    let mName = monthNames[currentSimMonth - 1];
+                    let amt = window.formatAmount(dataPts[m], w.currency);
+                    let colorClass = dataPts[m] < 0 ? 'color: var(--bg-stat-red);' : 'color: var(--text-dark);';
+                    html += `<div style="background:#fff; border:1px solid var(--border-color); padding:6px 10px; border-radius:6px; min-width:90px; text-align:center; flex-shrink:0;">
+                                <div style="font-size:0.75em; color:var(--text-muted); text-transform:uppercase;">${mName}</div>
+                                <div style="font-weight:bold; font-size:0.9em; ${colorClass}">${amt}</div>
+                             </div>`;
+                }
+                html += `</div></div>`;
+                detailDiv.innerHTML += html;
             }
-            html += `</div></div>`;
-            detailDiv.innerHTML += html;
         });
 
         if(db.privacy) { if(chart) chart.destroy(); return; }
         const ctx = document.getElementById('projectionChart').getContext('2d');
         if (chart) chart.destroy();
-        chart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: datasets }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10} } } }, scales: { x: { grid: { display: false } } } } });
+        chart = new Chart(ctx, { 
+            type: chartType, 
+            data: { labels: labels, datasets: datasets }, 
+            options: { 
+                maintainAspectRatio: false, 
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10} } } }, 
+                scales: { x: { grid: { display: false } } },
+                interaction: { mode: 'index', intersect: false }
+            } 
+        });
 
+        // DIBUJAR LISTA DE EVENTOS SIMULADOS EN PANTALLA
         const simList = document.getElementById('sim-list');
         simList.innerHTML = '';
+        const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         db.simulations.forEach(sim => {
             let sMonths = sim.months || [sim.month];
             const mNames = sMonths.map(sm => monthNames[parseInt(sm)-1]).join(", ");
