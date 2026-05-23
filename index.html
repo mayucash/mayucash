@@ -135,7 +135,7 @@
         .progress-container { background: #eee; border-radius: 4px; height: 8px; margin: 8px 0; overflow: hidden; }
         .progress-bar { height: 100%; transition: width 0.3s; }
         .projection-list { margin-top: 15px; font-size: 0.85em; background: #f8f9fa; padding: 10px; border-radius: 8px; }
-        .projection-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #ccc; }
+        .projection-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #ccc; align-items: center;}
         .text-green { color: #2ecc71; font-weight: bold; }
         .text-red { color: #e74c3c; font-weight: bold; }
         .chart-wrapper { position: relative; height: 250px; width: 100%; margin-bottom: 10px; }
@@ -380,16 +380,19 @@
             <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-top: 15px;">
                 <h4 style="margin: 0 0 10px 0; font-size: 0.9em; color: var(--text-dark);">🔮 Simulador de Eventos Futuros <span style="font-size:0.8em; color:var(--text-muted); font-weight:normal;">(No afecta saldo real)</span></h4>
                 <form id="sim-form" onsubmit="event.preventDefault(); window.addSimulation();" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <input type="hidden" id="sim-edit-id">
                     <input type="text" id="sim-desc" placeholder="Ej: Viaje / Cyber" required style="flex: 2 1 120px; height: 34px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;">
                     <input type="number" id="sim-amount" placeholder="Monto" required style="flex: 1 1 80px; height: 34px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;">
-                    <select id="sim-month" required style="flex: 1 1 80px; height: 34px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;">
+                    
+                    <select id="sim-month" multiple required style="flex: 1 1 80px; height: 60px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;" title="Mantén pulsado Ctrl/Cmd para seleccionar varios">
                         <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
                         <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
                         <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
                         <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
                     </select>
+                    
                     <select id="sim-wallet" required style="flex: 1 1 100px; height: 34px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;"></select>
-                    <button type="submit" class="btn-primary" style="height: 34px; padding: 0 15px; font-size: 12px; margin-top: 0; flex: 1 1 100%;">Añadir Gasto a la Proyección</button>
+                    <button type="submit" id="btn-sim-save" class="btn-primary" style="height: 34px; padding: 0 15px; font-size: 12px; margin-top: 0; flex: 1 1 100%;">Añadir Gasto a la Proyección</button>
                 </form>
                 <div id="sim-list" style="margin-top: 10px; font-size: 0.85em;"></div>
             </div>
@@ -781,19 +784,51 @@
         }
     };
 
-    // FUNCIONES DEL SIMULADOR
+    // FUNCIONES DEL SIMULADOR MÚLTIPLE MES
     window.addSimulation = async function() {
         if(!db.simulations) db.simulations = [];
+        const editId = document.getElementById('sim-edit-id').value;
         const desc = document.getElementById('sim-desc').value.trim();
         const amount = parseFloat(document.getElementById('sim-amount').value);
-        const month = document.getElementById('sim-month').value;
+        const months = Array.from(document.getElementById('sim-month').selectedOptions).map(o => o.value);
         const wallet = document.getElementById('sim-wallet').value;
         
-        if(desc && amount && month && wallet) {
-            db.simulations.push({ id: Date.now(), desc, amount, month, wallet });
+        if(desc && amount && months.length > 0 && wallet) {
+            const newSim = { id: editId ? parseInt(editId) : Date.now(), desc, amount, months, wallet };
+            
+            if (editId) {
+                const idx = db.simulations.findIndex(s => s.id === parseInt(editId));
+                if (idx !== -1) db.simulations[idx] = newSim;
+            } else {
+                db.simulations.push(newSim);
+            }
+            
             document.getElementById('sim-form').reset();
+            document.getElementById('sim-edit-id').value = '';
+            document.getElementById('btn-sim-save').innerText = 'Añadir Gasto a la Proyección';
             await window.saveDataCloud();
         }
+    };
+
+    window.editSimulation = function(id) {
+        const sim = db.simulations.find(s => s.id === id);
+        if(!sim) return;
+        document.getElementById('sim-edit-id').value = sim.id;
+        document.getElementById('sim-desc').value = sim.desc;
+        document.getElementById('sim-amount').value = sim.amount;
+        
+        // Asignar el valor a la cuenta de origen. Asegura que la moneda coincida visualmente en el select.
+        const simWalletSel = document.getElementById('sim-wallet');
+        Array.from(simWalletSel.options).forEach(opt => {
+            if (opt.value.includes(sim.wallet)) opt.selected = true;
+        });
+        
+        const selMonths = document.getElementById('sim-month');
+        Array.from(selMonths.options).forEach(opt => {
+            opt.selected = (sim.months || []).includes(opt.value) || sim.month === opt.value; // Compatible con registros viejos
+        });
+        
+        document.getElementById('btn-sim-save').innerText = 'Actualizar Simulación';
     };
 
     window.deleteSimulation = async function(id) {
@@ -1151,7 +1186,8 @@
             if (currentSimMonth > 12) currentSimMonth -= 12;
 
             db.simulations.forEach(sim => {
-                if (parseInt(sim.month) === currentSimMonth) {
+                let sMonths = sim.months || [sim.month]; // Compatibilidad vieja
+                if (sMonths.includes(currentSimMonth.toString()) || sMonths.includes(currentSimMonth)) {
                     if(simBalances[sim.wallet] !== undefined) {
                         simBalances[sim.wallet] -= parseFloat(sim.amount);
                     }
@@ -1183,14 +1219,18 @@
         simList.innerHTML = '';
         const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         db.simulations.forEach(sim => {
-            const mName = monthNames[parseInt(sim.month)-1];
+            let sMonths = sim.months || [sim.month];
+            const mNames = sMonths.map(sm => monthNames[parseInt(sm)-1]).join(", ");
             // Buscar moneda de la billetera
             let wObj = db.wallets.find(w => w.name === sim.wallet);
             let wCurr = wObj ? wObj.currency : 'CLP';
 
-            simList.innerHTML += `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #ccc;">
-                <span>📌 ${sim.desc} <b>(${mName})</b> en ${sim.wallet}</span>
-                <span style="color:var(--bg-stat-red); font-weight:bold;">-${window.formatAmount(sim.amount, wCurr, false)} <button type="button" onclick="window.deleteSimulation(${sim.id})" style="background:none; border:none; color:var(--bg-stat-red); cursor:pointer; margin-left:5px; font-weight:bold;">✕</button></span>
+            simList.innerHTML += `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #ccc; align-items: center;">
+                <span>📌 ${sim.desc} <b>(${mNames})</b> en ${sim.wallet}</span>
+                <span style="color:var(--bg-stat-red); font-weight:bold; white-space: nowrap;">-${window.formatAmount(sim.amount, wCurr, false)} 
+                    <button type="button" onclick="window.editSimulation(${sim.id})" style="background:none; border:none; cursor:pointer; margin-left:5px; font-size: 1.1em;" title="Editar">✏️</button>
+                    <button type="button" onclick="window.deleteSimulation(${sim.id})" style="background:none; border:none; color:var(--bg-stat-red); cursor:pointer; margin-left:2px; font-weight:bold; font-size: 1.1em;" title="Eliminar">✕</button>
+                </span>
             </div>`;
         });
     };
