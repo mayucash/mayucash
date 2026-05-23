@@ -94,13 +94,6 @@
         button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 0 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; flex: 0 0 auto; white-space: nowrap; margin-top: 0; }
         button.btn-primary:hover { opacity: 0.9; }
 
-        @media (max-width: 850px) {
-            .form-flex { flex-wrap: wrap; overflow-x: visible; }
-            .full-width-mob { flex: 1 1 100% !important; min-width: 100% !important; }
-            .half-width-mob { flex: 1 1 45% !important; min-width: 45% !important; }
-            button.btn-primary { flex: 1 1 100% !important; min-width: 100% !important; }
-        }
-
         /* TABLAS Y EXTRAS */
         .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
@@ -119,7 +112,11 @@
         .btn-clear-filters:hover { opacity: 0.9; }
 
         /* RESPONSIVE GENERAL INFERIOR */
-        .bottom-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        /* minmax(0, 1fr) Fuerza a que las columnas de PC sean SIEMPRE 50% y 50% exactos */
+        .bottom-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start;}
+        
+        .action-buttons { display: flex; gap: 10px; margin-top: 20px; }
+
         @media (max-width: 850px) { 
             .bottom-layout { grid-template-columns: 1fr; display: flex; flex-direction: column; } 
             .hero-summary { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; margin: 0 -20px 25px -20px; padding: 0 20px 10px 20px; -webkit-overflow-scrolling: touch; }
@@ -129,6 +126,14 @@
             .hero-stat { padding: 12px 10px; }
             .hero-stat-value { font-size: 0.7em; }
             .tab-btn { font-size: 0.85em; padding: 10px 8px; } /* Tabs más pequeñas */
+
+            .form-flex { flex-wrap: wrap; overflow-x: visible; }
+            .full-width-mob { flex: 1 1 100% !important; min-width: 100% !important; }
+            .half-width-mob { flex: 1 1 45% !important; min-width: 45% !important; }
+            button.btn-primary { flex: 1 1 100% !important; min-width: 100% !important; }
+            
+            /* Botones de Carga y Exportación apilados en Mobile */
+            .action-buttons { flex-direction: column; }
         }
         
         .budget-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 10px; background: #fff; }
@@ -282,10 +287,10 @@
         <div id="accounts-bar" class="accounts-bar"></div>
         <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
             <form id="wallet-form" class="form-flex" onsubmit="event.preventDefault(); window.addWallet();">
-                <div class="form-group full-width-mob"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
-                <div class="form-group half-width-mob"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
-                <div class="form-group half-width-mob"><select id="new-wallet-currency"></select></div>
-                <button type="submit" class="btn-primary full-width-mob">Crear Cuenta</button>
+                <div class="form-group full-width-mob" style="flex: 2 1 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
+                <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
+                <div class="form-group half-width-mob" style="flex: 1 1 80px;"><select id="new-wallet-currency"></select></div>
+                <button type="submit" class="btn-primary full-width-mob" style="flex: 1 1 100px;">Crear Cuenta</button>
             </form>
         </div>
     </div>
@@ -301,15 +306,21 @@
 
         <form id="finance-form" class="form-flex" onsubmit="event.preventDefault(); window.addEntry();">
             <input type="hidden" id="edit-id">
-            <input type="hidden" id="type-select" value="gasto"> <div class="form-group full-width-mob"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Supermercado..." required></div>
-            <div class="form-group half-width-mob"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
-            <div class="form-group half-width-mob"><label>Moneda</label><select id="currency-select"></select></div>
+            <input type="hidden" id="type-select" value="gasto"> <div class="form-group full-width-mob" style="flex: 2 1 200px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Supermercado..." required></div>
+            <div class="form-group half-width-mob" style="flex: 1 1 120px;"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
+            <div class="form-group half-width-mob" style="flex: 1 1 80px;"><label>Moneda</label><select id="currency-select"></select></div>
             
-            <div class="form-group half-width-mob" id="cat-group"><label>Categoría</label><select id="cat-select" required></select></div>
-            <div class="form-group half-width-mob" id="freq-group"><label>Frecuencia</label><select id="freq-select"><option value="ocasional">Ocasional</option><option value="fijo">Fijo</option></select></div>
+            <div class="form-group half-width-mob" id="cat-group" style="flex: 2 1 150px;"><label>Categoría</label><select id="cat-select" required></select></div>
+            <div class="form-group half-width-mob" id="freq-group" style="flex: 1 1 150px;">
+                <label>Frecuencia</label>
+                <select id="freq-select">
+                    <option value="ocasional">Ocasional</option>
+                    <option value="fijo">Fijo</option>
+                </select>
+            </div>
 
-            <div class="form-group half-width-mob"><label id="lbl-wallet-orig">En la Cuenta:</label><select id="wallet-select" onchange="window.handleWalletChange(event)"></select></div>
-            <div class="form-group half-width-mob hidden" id="dest-group"><label>Cuenta Destino:</label><select id="wallet-dest-select"></select></div>
+            <div class="form-group half-width-mob" style="flex: 1 1 150px;"><label id="lbl-wallet-orig">En la Cuenta:</label><select id="wallet-select" onchange="window.handleWalletChange(event)"></select></div>
+            <div class="form-group half-width-mob hidden" id="dest-group" style="flex: 1 1 150px;"><label>Cuenta Destino:</label><select id="wallet-dest-select"></select></div>
             
             <button type="submit" class="btn-primary full-width-mob" id="btn-save">Guardar Registro</button>
         </form>
@@ -345,12 +356,16 @@
     <div class="bottom-layout">
         <div class="section" style="margin-bottom: 0;">
             <h3 class="section-header">Metas y Presupuestos</h3>
-            <form id="budget-form" class="form-flex" onsubmit="event.preventDefault(); window.addBudget();">
-                <div class="form-group full-width-mob"><input type="text" id="budget-name" placeholder="Ej: Tarjetas" required></div>
-                <div class="form-group half-width-mob"><input type="number" id="budget-limit" placeholder="Monto Tope" required></div>
-                <div class="form-group full-width-mob"><select id="budget-cats-multi" multiple style="height:42px;" required></select></div>
-                <button type="submit" class="btn-primary full-width-mob">Crear Meta</button>
+            
+            <form id="budget-form" onsubmit="event.preventDefault(); window.addBudget();" style="display: flex; flex-direction: column; width: 100%;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; width: 100%;">
+                    <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="text" id="budget-name" placeholder="Ej: Tarjetas" required></div>
+                    <div class="form-group half-width-mob" style="flex: 1 1 100px;"><input type="number" id="budget-limit" placeholder="Monto Tope" required></div>
+                    <div class="form-group full-width-mob" style="flex: 2 1 200px;"><select id="budget-cats-multi" multiple style="height:80px;" required></select></div>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%; margin-top:10px;">Crear Meta</button>
             </form>
+
             <div id="budget-list-container" style="margin-top: 15px;"></div>
         </div>
 
@@ -364,7 +379,8 @@
                 <canvas id="projectionChart"></canvas>
             </div>
             <div id="projection-details" class="projection-list"></div>
-            <div style="margin-top: 20px; display:flex; gap:10px;">
+            
+            <div class="action-buttons">
                 <button class="btn-primary" onclick="window.exportData()" style="flex:1; background: #607d8b; padding:0 10px; font-size:0.9em;">💾 Exportar a PC</button>
                 <button class="btn-primary" onclick="document.getElementById('importFile').click()" style="flex:1; background: #607d8b; padding:0 10px; font-size:0.9em;">📂 Cargar Archivo</button>
                 <input type="file" id="importFile" onchange="window.importData(event)" style="display: none;">
@@ -415,9 +431,6 @@
     selMonth.value = String(now.getMonth() + 1).padStart(2, '0');
     selYear.value = now.getFullYear();
 
-    // ==============================================
-    // CAZA-FANTASMAS
-    // ==============================================
     function cleanGhostEntries() {
         if (!db || !db.months) return;
         Object.keys(db.months).forEach(k => {
@@ -439,9 +452,6 @@
         });
     }
 
-    // ==============================================
-    // EL CAZADOR DE PALABRAS (DICTADO INTELIGENTE)
-    // ==============================================
     window.toggleDictation = function() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return alert("Tu navegador no soporta el dictado por voz. Intenta desde Google Chrome o Safari.");
@@ -493,7 +503,7 @@
                 if(foundWallet) walletValue = foundWallet.name;
             }
 
-            window.switchTab(typeValue); // Cambia la pestaña automáticamente
+            window.switchTab(typeValue); 
             document.getElementById('freq-select').value = freqValue;
             document.getElementById('wallet-select').value = walletValue;
             window.handleWalletChange({target: {value: walletValue}});
@@ -516,9 +526,6 @@
         recognition.start();
     };
 
-    // ==============================================
-    // ONBOARDING & CONFIGURACIÓN
-    // ==============================================
     window.limitCurrencies = function(selectObj, warningId = 'ob-curr-warning') {
         const selected = Array.from(selectObj.selectedOptions);
         if (selected.length > 3) {
@@ -584,9 +591,6 @@
         window.closeSettings(); window.populateCategories(); await window.saveDataCloud();
     };
 
-    // ==============================================
-    // FUNCIONES BÁSICAS Y TABS
-    // ==============================================
     window.registerUser = async function() {
         if(!auth) return alert("Firebase no conectado.");
         const email = document.getElementById("auth-email").value;
@@ -607,7 +611,6 @@
     window.logoutUser = function() { if(auth) signOut(auth); if(realtimeUnsubscribe) realtimeUnsubscribe(); };
     window.togglePrivacy = async function() { db.privacy = !db.privacy; await window.saveDataCloud(); };
 
-    // FUNCIÓN PARA LAS TABS
     window.switchTab = function(type) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         event.currentTarget.classList.add('active');
@@ -694,7 +697,6 @@
         currentPage = 1; window.updateUI();
     };
 
-    // FORMULARIOS DE DATA
     window.addWallet = async function() {
         const name = document.getElementById('new-wallet-name').value.trim();
         const bal = parseFloat(document.getElementById('new-wallet-balance').value) || 0;
@@ -741,7 +743,7 @@
         document.getElementById('finance-form').reset(); 
         
         if(db.profile && db.profile.mainWallet) document.getElementById('wallet-select').value = db.profile.mainWallet;
-        window.populateCategories(); // Reset tabs
+        window.populateCategories(); 
         await window.saveDataCloud(); 
     };
 
@@ -846,9 +848,6 @@
         if(event.target.files[0]) reader.readAsText(event.target.files[0]);
     };
 
-    // ==============================================
-    // CONEXIÓN FIREBASE REALTIME
-    // ==============================================
     if(auth) {
         onAuthStateChanged(auth, async (user) => {
             if(user) {
@@ -918,9 +917,6 @@
         } catch(e) { console.error("Error subiendo a la nube", e); }
     };
 
-    // ==============================================
-    // DIBUJADO DE LA INTERFAZ Y FILTROS
-    // ==============================================
     window.formatAmount = function(amt, currency = 'CLP', showSign = false) { 
         if (db.privacy) return "****"; 
         const prefix = showSign ? (amt >= 0 ? '+' : '') : '';
@@ -1004,9 +1000,6 @@
                 </div>`;
         });
 
-        // ----------------------------------------------------------------
-        // LÓGICA DE FILTROS EN LA TABLA
-        // ----------------------------------------------------------------
         const fNote = document.getElementById('filter-note').value.toLowerCase();
         const fAmt = document.getElementById('filter-amount').value;
         const fType = document.getElementById('filter-type').value;
@@ -1033,7 +1026,6 @@
         pagedEntries.forEach(e => {
             let route = e.type === 'transferencia' ? `${e.wallet} ➔ ${e.walletDest}` : e.wallet;
             let color = e.type === 'ingreso' ? 'text-green' : (e.type === 'gasto' ? 'text-red' : '');
-            // REORDEN DE COLUMNAS: Nota | Monto | Cat. | Cuenta | Tipo | Acciones
             body.innerHTML += `<tr>
                 <td>${e.desc}</td>
                 <td class="${color}"><b>${window.formatAmount(e.amount, e.currency)}</b></td>
