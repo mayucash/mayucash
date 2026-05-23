@@ -182,7 +182,7 @@
         </select>
 
         <label>Selecciona tus Monedas (Máx. 3)</label>
-        <select id="ob-currencies" multiple required style="height: 120px;" onchange="window.limitCurrencies(this, 'ob-curr-warning')">
+        <select id="ob-currencies" multiple required style="height: 120px;" onchange="window.limitCurrencies(this)">
             <option value="CLP" selected>CLP - Peso Chileno</option>
             <option value="USD" selected>USD - Dólar Estadounidense</option>
             <option value="EUR">EUR - Euro</option>
@@ -440,7 +440,6 @@
     let realtimeUnsubscribe = null;
     let db = JSON.parse(localStorage.getItem('mayucash_local_fallback')) || null;
 
-    // Constantes por defecto (Fallback si el usuario aún no las personaliza)
     const defaultCatGastos = ["Arriendo", "Gastos Comunes", "Luz", "Agua", "Gas", "Internet", "Móvil", "Supermercado", "Transporte", "Salidas/Ocio", "Compras", "Tarjetas de Crédito", "Créditos", "Pensión", "Aporte Familia", "Mascotas", "Salud", "Vacaciones", "Mantenimiento", "Otro"];
     const defaultCatIngresos = ["Salario Principal", "Ahorro", "Rendimientos/Inversión", "Devolución", "Ventas Extras", "Saldo Inicial"];
     const catTransferencias = ["Ahorro", "Inversión", "Pago Tarjeta", "Movimiento Interno", "Fondo Emergencia", "Otro"];
@@ -616,7 +615,6 @@
         db.wallets.forEach(w => mainWalletSel.add(new Option(w.name, w.name)));
         if (db.profile.mainWallet) mainWalletSel.value = db.profile.mainWallet;
 
-        // Cargar categorías personalizadas en los textarea
         document.getElementById('set-cat-gastos').value = (db.profile.catGastos || defaultCatGastos).join(', ');
         document.getElementById('set-cat-ingresos').value = (db.profile.catIngresos || defaultCatIngresos).join(', ');
 
@@ -638,7 +636,6 @@
         db.profile.currencies = currs; 
         db.profile.mainWallet = mainW; 
         
-        // Guardar categorías personalizadas limpiando espacios vacíos
         db.profile.catGastos = catGText.split(',').map(s => s.trim()).filter(s => s);
         db.profile.catIngresos = catIText.split(',').map(s => s.trim()).filter(s => s);
         
@@ -964,7 +961,6 @@
                 }
                 if(!db.simulations) db.simulations = [];
                 
-                // Asegurar categorías personalizadas al importar
                 if(db.profile && !db.profile.catGastos) db.profile.catGastos = [...defaultCatGastos];
                 if(db.profile && !db.profile.catIngresos) db.profile.catIngresos = [...defaultCatIngresos];
 
@@ -1244,19 +1240,41 @@
                 }
             });
 
-            // 3. Guardar puntos
+            // 3. Guardar puntos para el gráfico
             db.wallets.forEach(w => { historyPts[w.name].push(simBalances[w.name] || 0); });
         }
 
         const datasets = [];
         const chartColors = ['#1a2a6c', '#0F9D58', '#E67E22', '#8e44ad', '#16a085', '#c0392b', '#2c3e50']; 
         const detailDiv = document.getElementById('projection-details');
-        detailDiv.innerHTML = '';
         
+        // --- NUEVA TABLA DETALLADA DE MESES COMO EN EXCEL ---
+        detailDiv.innerHTML = '<h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Saldo proyectado a fin de mes:</h5>';
+        
+        const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
         db.wallets.forEach((w, index) => {
             const dataPts = historyPts[w.name];
             datasets.push({ label: `${w.name} (${w.currency})`, data: dataPts, borderColor: chartColors[index % chartColors.length], fill: false, tension: 0.3 });
-            detailDiv.innerHTML += `<div class="projection-item"><span>${w.name}:</span> <b>${window.formatAmount(dataPts[6], w.currency)}</b></div>`;
+            
+            let html = `<div class="projection-item" style="flex-direction:column; align-items:flex-start; border:none; padding:0; margin-bottom:15px;">`;
+            html += `<strong style="font-size:0.9em; color:var(--text-dark); margin-bottom:5px;">🏦 ${w.name}</strong>`;
+            html += `<div style="display:flex; gap:8px; overflow-x:auto; width:100%; padding-bottom:8px; -webkit-overflow-scrolling: touch;">`;
+            
+            for(let m = 1; m <= 6; m++) {
+                let currentSimMonth = startMonth + m;
+                if (currentSimMonth > 12) currentSimMonth -= 12;
+                let mName = monthNames[currentSimMonth - 1];
+                let amt = window.formatAmount(dataPts[m], w.currency);
+                let colorClass = dataPts[m] < 0 ? 'color: var(--bg-stat-red);' : 'color: var(--text-dark);';
+                
+                html += `<div style="background:#fff; border:1px solid var(--border-color); padding:6px 10px; border-radius:6px; min-width:90px; text-align:center; flex-shrink:0;">
+                            <div style="font-size:0.75em; color:var(--text-muted); text-transform:uppercase;">${mName}</div>
+                            <div style="font-weight:bold; font-size:0.9em; ${colorClass}">${amt}</div>
+                         </div>`;
+            }
+            html += `</div></div>`;
+            detailDiv.innerHTML += html;
         });
 
         if(db.privacy) { if(chart) chart.destroy(); return; }
@@ -1266,7 +1284,6 @@
 
         const simList = document.getElementById('sim-list');
         simList.innerHTML = '';
-        const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         db.simulations.forEach(sim => {
             let sMonths = sim.months || [sim.month];
             const mNames = sMonths.map(sm => monthNames[parseInt(sm)-1]).join(", ");
