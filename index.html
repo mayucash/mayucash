@@ -75,7 +75,7 @@
         .btn-delete-wallet { position: absolute; top: 2px; right: 2px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 10px; padding: 2px 4px; z-index: 10; }
         .btn-delete-wallet:hover { color: var(--bg-stat-red); }
 
-        /* TABS (Pestañas de Registro) */
+        /* TABS */
         .tabs-container { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--border-color); overflow-x: auto; }
         .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 1em; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s; white-space: nowrap; }
         .tab-btn.active { color: var(--primary-btn); border-bottom-color: var(--primary-btn); }
@@ -103,13 +103,13 @@
         .btn-page { background: #fff; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* BLOQUE DE FILTROS EN UNA LÍNEA */
+        /* FILTROS */
         .filters-container { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid var(--border-color); padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
         .filters-container input, .filters-container select { flex: 0 0 auto; width: 150px; height: 36px; padding: 6px 10px; font-size: 13px; }
         .btn-clear-filters { background: var(--bg-stat-red); color: white; border: none; border-radius: 6px; padding: 0 15px; cursor: pointer; height: 36px; font-weight: bold; flex: 0 0 auto; transition: 0.2s; white-space: nowrap; }
         .btn-clear-filters:hover { opacity: 0.9; }
 
-        /* RESPONSIVE GENERAL INFERIOR */
+        /* RESPONSIVE */
         .bottom-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start;}
         .action-buttons { display: flex; gap: 10px; margin-top: 20px; }
 
@@ -144,7 +144,6 @@
         .sync-online { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
         .sync-offline { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
 
-        /* BOTÓN FLOTANTE DEL MICRÓFONO (FAB) */
         .fab-mic { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: var(--primary-btn); color: white; font-size: 26px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.25); cursor: pointer; z-index: 1000; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; }
         .fab-mic:hover { transform: scale(1.05); }
         .fab-mic.recording { background: var(--bg-stat-red); animation: pulse 1.5s infinite; }
@@ -314,18 +313,10 @@
 
             <div class="form-group full-width-mob" style="flex: 2 1 200px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Supermercado..." required></div>
             <div class="form-group half-width-mob" style="flex: 1 1 120px;"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
-            <div class="form-group half-width-mob" style="flex: 1 1 80px;"><label>Moneda</label><select id="currency-select"></select></div>
             
             <div class="form-group half-width-mob" id="cat-group" style="flex: 2 1 150px;"><label>Categoría</label><select id="cat-select" required></select></div>
-            <div class="form-group half-width-mob" id="freq-group" style="flex: 1 1 150px;">
-                <label>Frecuencia</label>
-                <select id="freq-select">
-                    <option value="ocasional">Ocasional</option>
-                    <option value="fijo">Fijo</option>
-                </select>
-            </div>
-
-            <div class="form-group half-width-mob" style="flex: 1 1 150px;"><label id="lbl-wallet-orig">En la Cuenta:</label><select id="wallet-select" onchange="window.handleWalletChange(event)"></select></div>
+            
+            <div class="form-group half-width-mob" style="flex: 1 1 150px;"><label id="lbl-wallet-orig">En la Cuenta:</label><select id="wallet-select"></select></div>
             <div class="form-group half-width-mob hidden" id="dest-group" style="flex: 1 1 150px;"><label>Cuenta Destino:</label><select id="wallet-dest-select"></select></div>
             
             <button type="submit" class="btn-primary full-width-mob" id="btn-save">Guardar Registro</button>
@@ -359,6 +350,10 @@
         <div class="pagination" id="pagination-controls"></div>
     </div>
 
+    <h4 style="margin: 25px 0 5px 0; color: var(--text-dark); font-weight: 700;">⚙️ Moneda del Entorno de Trabajo (Presupuesto y Proyección)</h4>
+    <div class="tabs-container" id="currency-workspace-tabs" style="margin-bottom: 20px;">
+    </div>
+
     <div class="bottom-layout">
         <div class="section" style="margin-bottom: 0;">
             <h3 class="section-header">Metas y Presupuestos</h3>
@@ -385,8 +380,8 @@
             </div>
             
             <p style="font-size: 0.8em; color: var(--text-muted); margin-top: 0; margin-bottom: 5px;">
-                Simula Ingresos, Gastos y Transferencias "Fijas".<br>
-                <b>*Arriendo:</b> Aplica aumento compuesto IPC del 1.2% cada 3 meses.
+                Simula Ingresos, Gastos y Transferencias basados en tu balance actual.<br>
+                <b>*Arriendo:</b> Si aplica en la moneda, calcula inflación simulada.
             </p>
             <div class="chart-wrapper">
                 <canvas id="projectionChart"></canvas>
@@ -446,6 +441,7 @@
     let currentUser = null;
     let realtimeUnsubscribe = null;
     let db = JSON.parse(localStorage.getItem('mayucash_local_fallback')) || null;
+    let currentWorkspaceCurrency = 'CLP';
 
     const defaultCatGastos = ["Arriendo", "Gastos Comunes", "Luz", "Agua", "Gas", "Internet", "Móvil", "Supermercado", "Transporte", "Salidas/Ocio", "Compras", "Tarjetas de Crédito", "Créditos", "Pensión", "Aporte Familia", "Mascotas", "Salud", "Vacaciones", "Mantenimiento", "Otro"];
     const defaultCatIngresos = ["Salario Principal", "Ahorro", "Rendimientos/Inversión", "Devolución", "Ventas Extras", "Saldo Inicial"];
@@ -506,7 +502,6 @@
             if(amount > 0) document.getElementById('amount').value = amount;
 
             let typeValue = 'gasto';
-            let freqValue = 'ocasional';
             let walletValue = (db.profile && db.profile.mainWallet) ? db.profile.mainWallet : (db.wallets.length > 0 ? db.wallets[0].name : '');
             let catValue = 'Otro';
             let descValue = transcript.trim().charAt(0).toUpperCase() + transcript.trim().slice(1);
@@ -514,20 +509,16 @@
             if (transcript.includes('agua') || transcript.includes('luz') || transcript.includes('gas')) {
                 if (amount > 3000) {
                     catValue = 'Luz/Agua/Gas';
-                    freqValue = 'fijo';
                     descValue = 'Pago de servicio (' + (transcript.includes('agua') ? 'Agua' : transcript.includes('luz') ? 'Luz' : 'Gas') + ')';
                 } else {
                     catValue = 'Salidas/Ocio';
-                    freqValue = 'ocasional';
                     descValue = transcript.includes('agua') ? 'Agua mineral' : descValue;
                 }
             } else if (transcript.includes('arriendo')) {
                 catValue = 'Arriendo';
-                freqValue = 'fijo';
             } else if (transcript.includes('sueldo') || transcript.includes('salario')) {
                 typeValue = 'ingreso';
                 catValue = 'Salario Principal';
-                freqValue = 'fijo';
             } else if (transcript.includes('supermercado') || transcript.includes('comida')) {
                 catValue = 'Supermercado';
             }
@@ -538,9 +529,7 @@
             }
 
             window.switchTab(typeValue); 
-            document.getElementById('freq-select').value = freqValue;
             document.getElementById('wallet-select').value = walletValue;
-            window.handleWalletChange({target: {value: walletValue}});
             
             setTimeout(() => {
                 const catSelect = document.getElementById('cat-select');
@@ -596,6 +585,7 @@
         };
 
         const mainCurr = currs[0];
+        currentWorkspaceCurrency = mainCurr;
         db.wallets.push({ name: acc1Name, currency: mainCurr });
         db.wallets.push({ name: acc2Name, currency: mainCurr });
 
@@ -649,6 +639,10 @@
         if(db.profile.catGastos.length === 0) db.profile.catGastos = ['Otro'];
         if(db.profile.catIngresos.length === 0) db.profile.catIngresos = ['Otro'];
 
+        if(!db.profile.currencies.includes(currentWorkspaceCurrency)) {
+            currentWorkspaceCurrency = db.profile.currencies[0] || 'CLP';
+        }
+
         window.closeSettings(); 
         window.populateCategories(); 
         await window.saveDataCloud();
@@ -675,8 +669,10 @@
     window.togglePrivacy = async function() { db.privacy = !db.privacy; await window.saveDataCloud(); };
 
     window.switchTab = function(type) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        document.querySelectorAll('#main-dashboard .tabs-container .tab-btn').forEach(btn => {
+            if(!btn.classList.contains('workspace-tab-btn')) btn.classList.remove('active');
+        });
+        if(event && event.currentTarget) event.currentTarget.classList.add('active');
         
         document.getElementById('type-select').value = type;
         const isTrf = type === 'transferencia';
@@ -687,22 +683,38 @@
         window.populateCategories();
     };
 
-    window.handleWalletChange = function(e) {
-        const wName = e.target.value;
-        const wallet = db.wallets.find(w => w.name === wName);
-        if(wallet) document.getElementById('currency-select').value = wallet.currency;
+    window.switchWorkspaceCurrency = function(curr) {
+        currentWorkspaceCurrency = curr;
+        document.querySelectorAll('.workspace-tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-curr') === curr);
+        });
+        window.updateUI();
     };
 
     window.populateCategories = function() {
         if(!db || !db.profile) return;
 
-        const currSelects = [document.getElementById('new-wallet-currency'), document.getElementById('currency-select')];
+        const currSelects = [document.getElementById('new-wallet-currency')];
         currSelects.forEach(sel => {
             const currentVal = sel.value;
             sel.innerHTML = '';
             db.profile.currencies.forEach(c => sel.add(new Option(c, c)));
             if(db.profile.currencies.includes(currentVal)) sel.value = currentVal;
         });
+
+        // RE-DIBUJAR ESPACIOS DE TRABAJO (WORKSPACE TABS)
+        const wsTabs = document.getElementById('currency-workspace-tabs');
+        if (wsTabs) {
+            wsTabs.innerHTML = '';
+            db.profile.currencies.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn workspace-tab-btn ${c === currentWorkspaceCurrency ? 'active' : ''}`;
+                btn.setAttribute('data-curr', c);
+                btn.innerText = `📈 Entorno ${c}`;
+                btn.onclick = () => window.switchWorkspaceCurrency(c);
+                wsTabs.appendChild(btn);
+            });
+        }
 
         const type = document.getElementById('type-select').value;
         const catSelect = document.getElementById('cat-select');
@@ -729,7 +741,6 @@
                     if(simWalletSelect) simWalletSelect.add(new Option(`${w.name} (${w.currency})`, w.name));
                 }
             });
-            if(db.wallets.length > 0 && !currSelects[1].value) currSelects[1].value = db.wallets[0].currency;
         }
 
         const multi = document.getElementById('budget-cats-multi');
@@ -791,16 +802,22 @@
         if (!db.months[key]) db.months[key] = { entries: [], budgets: [] };
         
         const editId = document.getElementById('edit-id').value;
+        const walletName = document.getElementById('wallet-select').value;
+        
+        // REDUCCIÓN DE CAMPOS: Deducir automáticamente la moneda según la cuenta elegida
+        const activeWallet = db.wallets.find(w => w.name === walletName);
+        const inferredCurrency = activeWallet ? activeWallet.currency : (db.profile.currencies[0] || 'CLP');
+
         const entry = { 
             id: editId ? parseInt(editId) : Date.now(), 
             desc: document.getElementById('desc').value, 
             amount: parseFloat(document.getElementById('amount').value), 
             type: document.getElementById('type-select').value, 
-            wallet: document.getElementById('wallet-select').value, 
+            wallet: walletName, 
             walletDest: document.getElementById('wallet-dest-select').value, 
             category: document.getElementById('cat-select').value, 
-            freq: document.getElementById('freq-select').value || 'ocasional', 
-            currency: document.getElementById('currency-select').value 
+            freq: 'ocasional', // Por defecto, usabilidad limpia
+            currency: inferredCurrency
         };
         
         if(editId) { 
@@ -824,7 +841,9 @@
         if (name && limit && selectedCats.length > 0) {
             const key = `${selYear.value}-${selMonth.value}`;
             if (!db.months[key]) db.months[key] = { entries: [], budgets: [] };
-            db.months[key].budgets.push({ name, limit, categories: selectedCats });
+            
+            // Vincular el presupuesto al espacio de trabajo activo
+            db.months[key].budgets.push({ name, limit, categories: selectedCats, currency: currentWorkspaceCurrency });
             document.getElementById('budget-form').reset();
             await window.saveDataCloud();
         }
@@ -906,14 +925,12 @@
         document.getElementById('desc').value = e.desc;
         document.getElementById('amount').value = e.amount;
         
-        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabBtns = document.querySelectorAll('#main-dashboard .tabs-container .tab-btn');
         if(e.type === 'gasto') tabBtns[0].click();
         if(e.type === 'ingreso') tabBtns[1].click();
         if(e.type === 'transferencia') tabBtns[2].click();
 
-        document.getElementById('freq-select').value = e.freq || 'ocasional';
         document.getElementById('wallet-select').value = e.wallet;
-        document.getElementById('currency-select').value = e.currency || 'CLP';
         if(e.type === 'transferencia') document.getElementById('wallet-dest-select').value = e.walletDest;
         document.getElementById('cat-select').value = e.category;
         document.getElementById('btn-save').innerText = 'Actualizar Registro';
@@ -1070,9 +1087,14 @@
         const data = db.months[key];
         
         let mInc = {}, mExp = {}, mCount = {}, totalBal = {};
-        let walletTotals = {}, walletFixedRates = {}, expensesByCat = {};
+        let walletTotals = {}, walletFixedRates = {};
         
-        db.profile.currencies.forEach(c => { mInc[c] = 0; mExp[c] = 0; mCount[c] = 0; totalBal[c] = 0; });
+        // Estructura de gastos estructurada por Moneda -> Categoría
+        let expensesByCat = {}; 
+        db.profile.currencies.forEach(c => { 
+            mInc[c] = 0; mExp[c] = 0; mCount[c] = 0; totalBal[c] = 0; 
+            expensesByCat[c] = {};
+        });
         db.wallets.forEach(w => { walletTotals[w.name] = 0; walletFixedRates[w.name] = 0; });
 
         Object.keys(db.months).forEach(k => {
@@ -1082,10 +1104,6 @@
                 if(e.type === 'transferencia') {
                     if(walletTotals[e.wallet] !== undefined) walletTotals[e.wallet] -= e.amount;
                     if(walletTotals[e.walletDest] !== undefined) walletTotals[e.walletDest] += e.amount;
-                    if(k === key && e.freq === 'fijo') {
-                        if(walletFixedRates[e.wallet] !== undefined) walletFixedRates[e.wallet] -= e.amount;
-                        if(walletFixedRates[e.walletDest] !== undefined) walletFixedRates[e.walletDest] += e.amount;
-                    }
                 } else {
                     const val = e.type === 'ingreso' ? e.amount : -e.amount;
                     if(walletTotals[e.wallet] !== undefined) walletTotals[e.wallet] += val;
@@ -1093,11 +1111,11 @@
                     if(k === key && e.category !== 'Saldo Inicial') {
                         if(e.type === 'ingreso') {
                             if(mInc[curr] !== undefined) mInc[curr] += e.amount;
-                            if(e.freq === 'fijo' && walletFixedRates[e.wallet] !== undefined) walletFixedRates[e.wallet] += e.amount;
                         } else {
                             if(mExp[curr] !== undefined) mExp[curr] += e.amount;
-                            if(curr === db.profile.currencies[0]) expensesByCat[e.category] = (expensesByCat[e.category] || 0) + e.amount;
-                            if(e.freq === 'fijo' && walletFixedRates[e.wallet] !== undefined) walletFixedRates[e.wallet] -= e.amount;
+                            if(expensesByCat[curr]) {
+                                expensesByCat[curr][e.category] = (expensesByCat[curr][e.category] || 0) + e.amount;
+                            }
                         }
                         if(mCount[curr] !== undefined) mCount[curr]++;
                     }
@@ -1176,12 +1194,18 @@
         
         document.getElementById('pagination-controls').innerHTML = `<button type="button" class="btn-page" onclick="window.changePage(-1)" ${currentPage === 1 ? 'disabled' : ''}>Anterior</button><span>Mostrando ${filteredEntries.length > 0 ? startIndex + 1 : 0}-${Math.min(startIndex + itemsPerPage, filteredEntries.length)} de ${filteredEntries.length}</span><button type="button" class="btn-page" onclick="window.changePage(1)" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente</button>`;
 
-        const mainCurrency = db.profile.currencies[0]; 
-        document.querySelector('#budget-form button').innerText = `Crear Meta (${mainCurrency})`;
+        // PROCESAMIENTO FILTRADO PARA METAS POR ENTORNO DE TRABAJO SELECCIONADO
+        const activeWorkspaceCurrency = currentWorkspaceCurrency;
+        document.querySelector('#budget-form button').innerText = `Crear Meta (${activeWorkspaceCurrency})`;
+        
         const bList = document.getElementById('budget-list-container');
         bList.innerHTML = '';
+        
         (data.budgets || []).forEach((b, idx) => {
-            let real = b.categories.reduce((sum, cat) => sum + (expensesByCat[cat] || 0), 0);
+            const budgetCurrency = b.currency || db.profile.currencies[0];
+            if(budgetCurrency !== activeWorkspaceCurrency) return; // Ignorar si no pertenece a la moneda actual
+
+            let real = b.categories.reduce((sum, cat) => sum + ((expensesByCat[activeWorkspaceCurrency] && expensesByCat[activeWorkspaceCurrency][cat]) || 0), 0);
             let perc = Math.min((real / b.limit) * 100, 100);
             let realPerc = (real / b.limit) * 100;
             
@@ -1195,8 +1219,8 @@
                     <button type="button" onclick="window.deleteBudget(${idx})" style="float:right; border:none; background:none; color:var(--bg-stat-red); cursor:pointer;">✕</button>
                     <div class="progress-container"><div class="progress-bar" style="width:${perc}%; background:${barColor}"></div></div>
                     <div style="display:flex; justify-content:space-between; font-size:0.85em;">
-                        <span>Gastado: <b style="color:${realPerc >= 100 ? 'var(--bg-stat-red)' : 'inherit'}">${window.formatAmount(real, mainCurrency)}</b></span>
-                        <span>Tope: ${window.formatAmount(b.limit, mainCurrency)}</span>
+                        <span>Gastado: <b style="color:${realPerc >= 100 ? 'var(--bg-stat-red)' : 'inherit'}">${window.formatAmount(real, activeWorkspaceCurrency)}</b></span>
+                        <span>Tope: ${window.formatAmount(b.limit, activeWorkspaceCurrency)}</span>
                     </div>
                 </div>`;
         });
@@ -1207,24 +1231,29 @@
     window.updateMultiAccountProjection = function(currentBalances, currentMonthKey) {
         if(!db.simulations) db.simulations = [];
         const labels = ['Hoy', '+1 Mes', '+2 Meses', '+3 Meses', '+4 Meses', '+5 Meses', '+6 Meses'];
+        
+        // PROYECCIÓN SEPARADA: Filtrar solo las cuentas que manejan la moneda del espacio de trabajo
+        const activeWorkspaceCurrency = currentWorkspaceCurrency;
+        const activeWallets = db.wallets.filter(w => w.currency === activeWorkspaceCurrency);
+
         let fixedFlows = [];
         if(db.months[currentMonthKey] && db.months[currentMonthKey].entries) {
             db.months[currentMonthKey].entries.forEach(e => {
-                if(e.freq === 'fijo' && e.category !== 'Saldo Inicial') fixedFlows.push(JSON.parse(JSON.stringify(e))); 
+                if(e.freq === 'fijo' && e.category !== 'Saldo Inicial' && e.currency === activeWorkspaceCurrency) {
+                    fixedFlows.push(JSON.parse(JSON.stringify(e))); 
+                }
             });
         }
 
         let simBalances = { ...currentBalances };
         let historyPts = {};
-        db.wallets.forEach(w => { historyPts[w.name] = [simBalances[w.name] || 0]; });
+        activeWallets.forEach(w => { historyPts[w.name] = [simBalances[w.name] || 0]; });
 
         let startMonth = parseInt(document.getElementById('sel-month').value);
 
         for(let m = 1; m <= 6; m++) {
-            
-            // 1. Aplicar Gastos Fijos
             fixedFlows.forEach(flow => {
-                if(flow.category === 'Arriendo' && (m % 3 === 0)) flow.amount = flow.amount * 1.012; 
+                if(flow.category === 'Arriendo' && (m % 3 === 0) && activeWorkspaceCurrency === 'CLP') flow.amount = flow.amount * 1.012; 
                 if(flow.type === 'transferencia') {
                     if(simBalances[flow.wallet] !== undefined) simBalances[flow.wallet] -= flow.amount;
                     if(simBalances[flow.walletDest] !== undefined) simBalances[flow.walletDest] += flow.amount;
@@ -1234,11 +1263,13 @@
                 }
             });
 
-            // 2. Aplicar Simulaciones de Eventos Futuros
             let currentSimMonth = startMonth + m;
             if (currentSimMonth > 12) currentSimMonth -= 12;
 
             db.simulations.forEach(sim => {
+                const targetWallet = db.wallets.find(w => w.name === sim.wallet);
+                if(!targetWallet || targetWallet.currency !== activeWorkspaceCurrency) return;
+
                 let sMonths = sim.months || [sim.month]; 
                 if (sMonths.includes(currentSimMonth.toString()) || sMonths.includes(currentSimMonth)) {
                     if(simBalances[sim.wallet] !== undefined) {
@@ -1247,24 +1278,20 @@
                 }
             });
 
-            // 3. Guardar puntos para el gráfico
-            db.wallets.forEach(w => { historyPts[w.name].push(simBalances[w.name] || 0); });
+            activeWallets.forEach(w => { historyPts[w.name].push(simBalances[w.name] || 0); });
         }
 
         const datasets = [];
         const chartColors = ['#1a2a6c', '#0F9D58', '#E67E22', '#8e44ad', '#16a085', '#c0392b', '#2c3e50']; 
-        
-        // LEER TIPO DE GRÁFICO ELEGIDO
         const chartType = document.getElementById('chart-type') ? document.getElementById('chart-type').value : 'line';
         
         const detailDiv = document.getElementById('projection-details');
         detailDiv.innerHTML = '';
 
-        db.wallets.forEach((w, index) => {
+        activeWallets.forEach((w, index) => {
             const dataPts = historyPts[w.name];
             datasets.push({ label: `${w.name} (${w.currency})`, data: dataPts, borderColor: chartColors[index % chartColors.length], backgroundColor: chartColors[index % chartColors.length], fill: false, tension: 0.3 });
             
-            // SOLO DIBUJAR LA TABLA EN MODO LÍNEA
             if(chartType === 'line') {
                 if (index === 0) detailDiv.innerHTML = '<h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Saldo proyectado a fin de mes:</h5>';
                 const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
@@ -1302,15 +1329,17 @@
             } 
         });
 
-        // DIBUJAR LISTA DE EVENTOS SIMULADOS EN PANTALLA
+        // FILTRAR EVENTOS FUTUROS EN PANTALLA SEGÚN CONTEXTO ACTIVO
         const simList = document.getElementById('sim-list');
         simList.innerHTML = '';
         const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         db.simulations.forEach(sim => {
-            let sMonths = sim.months || [sim.month];
-            const mNames = sMonths.map(sm => monthNames[parseInt(sm)-1]).join(", ");
             let wObj = db.wallets.find(w => w.name === sim.wallet);
             let wCurr = wObj ? wObj.currency : 'CLP';
+            if (wCurr !== activeWorkspaceCurrency) return; // Ocultar si no corresponde al espacio activo
+
+            let sMonths = sim.months || [sim.month];
+            const mNames = sMonths.map(sm => monthNames[parseInt(sm)-1]).join(", ");
 
             simList.innerHTML += `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #ccc; align-items: center;">
                 <span>📌 ${sim.desc} <b>(${mNames})</b> en ${sim.wallet}</span>
