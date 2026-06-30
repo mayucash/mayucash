@@ -359,12 +359,13 @@
             <h3 class="section-header">Metas y Presupuestos</h3>
             
             <form id="budget-form" onsubmit="event.preventDefault(); window.addBudget();" style="display: flex; flex-direction: column; width: 100%;">
+                <input type="hidden" id="budget-edit-idx" value="">
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; width: 100%;">
                     <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="text" id="budget-name" placeholder="Ej: Tarjetas" required></div>
                     <div class="form-group half-width-mob" style="flex: 1 1 100px;"><input type="number" id="budget-limit" placeholder="Monto Tope" required></div>
                     <div class="form-group full-width-mob" style="flex: 2 1 200px;"><select id="budget-cats-multi" multiple style="height:80px;" required></select></div>
                 </div>
-                <button type="submit" class="btn-primary" style="width:100%; margin-top:10px;">Crear Meta</button>
+                <button type="submit" id="btn-budget-save" class="btn-primary" style="width:100%; margin-top:10px;">Crear Meta</button>
             </form>
 
             <div id="budget-list-container" style="margin-top: 15px;"></div>
@@ -460,6 +461,24 @@
     const now = new Date();
     selMonth.value = String(now.getMonth() + 1).padStart(2, '0');
     selYear.value = now.getFullYear();
+
+    // NUEVO MOTOR DE HERENCIA: Asegura que el presupuesto estratégico persista de meses anteriores
+    function initMonthData(key) {
+        if (!db.months[key]) {
+            let copiedBudgets = [];
+            const sortedKeys = Object.keys(db.months).sort();
+            if (sortedKeys.length > 0) {
+                for (let i = sortedKeys.length - 1; i >= 0; i--) {
+                    if (db.months[sortedKeys[i]].budgets && db.months[sortedKeys[i]].budgets.length > 0) {
+                        copiedBudgets = JSON.parse(JSON.stringify(db.months[sortedKeys[i]].budgets));
+                        break;
+                    }
+                }
+            }
+            db.months[key] = { entries: [], budgets: copiedBudgets };
+        }
+        return db.months[key];
+    }
 
     function cleanGhostEntries() {
         if (!db || !db.months) return;
@@ -590,7 +609,7 @@
         db.wallets.push({ name: acc2Name, currency: mainCurr });
 
         const key = `${selYear.value}-${selMonth.value}`;
-        db.months[key] = { entries: [], budgets: [] };
+        initMonthData(key);
         db.months[key].entries.push({ id: Date.now(), desc: "Saldo Inicial", amount: acc1Bal, type: 'ingreso', wallet: acc1Name, currency: mainCurr, category: 'Saldo Inicial', freq: 'ocasional' });
         db.months[key].entries.push({ id: Date.now()+1, desc: "Saldo Inicial", amount: acc2Bal, type: 'ingreso', wallet: acc2Name, currency: mainCurr, category: 'Saldo Inicial', freq: 'ocasional' });
 
@@ -702,7 +721,6 @@
             if(db.profile.currencies.includes(currentVal)) sel.value = currentVal;
         });
 
-        // RE-DIBUJAR ESPACIOS DE TRABAJO (WORKSPACE TABS)
         const wsTabs = document.getElementById('currency-workspace-tabs');
         if (wsTabs) {
             wsTabs.innerHTML = '';
@@ -790,7 +808,7 @@
         if (!db.profile.mainWallet) db.profile.mainWallet = name;
 
         const key = `${selYear.value}-${selMonth.value}`;
-        if (!db.months[key]) db.months[key] = { entries: [], budgets: [] };
+        initMonthData(key);
         db.months[key].entries.push({ id: Date.now(), desc: "Saldo Inicial", amount: bal, type: 'ingreso', wallet: name, currency: curr, category: 'Saldo Inicial', freq: 'ocasional' });
         
         document.getElementById('wallet-form').reset();
@@ -799,12 +817,11 @@
 
     window.addEntry = async function() {
         const key = `${selYear.value}-${selMonth.value}`;
-        if (!db.months[key]) db.months[key] = { entries: [], budgets: [] };
+        initMonthData(key);
         
         const editId = document.getElementById('edit-id').value;
         const walletName = document.getElementById('wallet-select').value;
         
-        // REDUCCIÓN DE CAMPOS: Deducir automáticamente la moneda según la cuenta elegida
         const activeWallet = db.wallets.find(w => w.name === walletName);
         const inferredCurrency = activeWallet ? activeWallet.currency : (db.profile.currencies[0] || 'CLP');
 
@@ -816,7 +833,7 @@
             wallet: walletName, 
             walletDest: document.getElementById('wallet-dest-select').value, 
             category: document.getElementById('cat-select').value, 
-            freq: 'ocasional', // Por defecto, usabilidad limpia
+            freq: 'ocasional', 
             currency: inferredCurrency
         };
         
@@ -838,15 +855,44 @@
         const name = document.getElementById('budget-name').value.trim();
         const limit = parseFloat(document.getElementById('budget-limit').value);
         const selectedCats = Array.from(document.getElementById('budget-cats-multi').selectedOptions).map(o => o.value);
+        const editIdx = document.getElementById('budget-edit-idx').value;
+
         if (name && limit && selectedCats.length > 0) {
             const key = `${selYear.value}-${selMonth.value}`;
-            if (!db.months[key]) db.months[key] = { entries: [], budgets: [] };
+            initMonthData(key);
             
-            // Vincular el presupuesto al espacio de trabajo activo
-            db.months[key].budgets.push({ name, limit, categories: selectedCats, currency: currentWorkspaceCurrency });
+            const budgetObj = { name, limit, categories: selectedCats, currency: currentWorkspaceCurrency };
+
+            // Permite modificar topes por inflación o reajuste sin perder historial del pasado
+            if (editIdx !== "") {
+                db.months[key].budgets[parseInt(editIdx)] = budgetObj;
+                document.getElementById('budget-edit-idx').value = "";
+                document.getElementById('btn-budget-save').innerText = `Crear Meta (${currentWorkspaceCurrency})`;
+            } else {
+                db.months[key].budgets.push(budgetObj);
+            }
+
             document.getElementById('budget-form').reset();
             await window.saveDataCloud();
         }
+    };
+
+    window.editBudget = function(idx) {
+        const key = `${selYear.value}-${selMonth.value}`;
+        const b = db.months[key].budgets[idx];
+        if(!b) return;
+
+        document.getElementById('budget-edit-idx').value = idx;
+        document.getElementById('budget-name').value = b.name;
+        document.getElementById('budget-limit').value = b.limit;
+        
+        const multiSelect = document.getElementById('budget-cats-multi');
+        Array.from(multiSelect.options).forEach(opt => {
+            opt.selected = b.categories.includes(opt.value);
+        });
+
+        document.getElementById('btn-budget-save').innerText = "Actualizar Meta ✏️";
+        document.getElementById('budget-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
     window.addSimulation = async function() {
@@ -1083,13 +1129,12 @@
         if(!db.simulations) db.simulations = [];
         
         const key = `${selYear.value}-${selMonth.value}`;
-        if (!db.months[key]) db.months[key] = { entries: [], budgets: [] };
+        initMonthData(key);
         const data = db.months[key];
         
         let mInc = {}, mExp = {}, mCount = {}, totalBal = {};
         let walletTotals = {}, walletFixedRates = {};
         
-        // Estructura de gastos estructurada por Moneda -> Categoría
         let expensesByCat = {}; 
         db.profile.currencies.forEach(c => { 
             mInc[c] = 0; mExp[c] = 0; mCount[c] = 0; totalBal[c] = 0; 
@@ -1194,16 +1239,17 @@
         
         document.getElementById('pagination-controls').innerHTML = `<button type="button" class="btn-page" onclick="window.changePage(-1)" ${currentPage === 1 ? 'disabled' : ''}>Anterior</button><span>Mostrando ${filteredEntries.length > 0 ? startIndex + 1 : 0}-${Math.min(startIndex + itemsPerPage, filteredEntries.length)} de ${filteredEntries.length}</span><button type="button" class="btn-page" onclick="window.changePage(1)" ${currentPage === totalPages ? 'disabled' : ''}>Siguiente</button>`;
 
-        // PROCESAMIENTO FILTRADO PARA METAS POR ENTORNO DE TRABAJO SELECCIONADO
         const activeWorkspaceCurrency = currentWorkspaceCurrency;
-        document.querySelector('#budget-form button').innerText = `Crear Meta (${activeWorkspaceCurrency})`;
+        if(document.getElementById('budget-edit-idx').value === "") {
+            document.querySelector('#budget-form button').innerText = `Crear Meta (${activeWorkspaceCurrency})`;
+        }
         
         const bList = document.getElementById('budget-list-container');
         bList.innerHTML = '';
         
         (data.budgets || []).forEach((b, idx) => {
             const budgetCurrency = b.currency || db.profile.currencies[0];
-            if(budgetCurrency !== activeWorkspaceCurrency) return; // Ignorar si no pertenece a la moneda actual
+            if(budgetCurrency !== activeWorkspaceCurrency) return; 
 
             let real = b.categories.reduce((sum, cat) => sum + ((expensesByCat[activeWorkspaceCurrency] && expensesByCat[activeWorkspaceCurrency][cat]) || 0), 0);
             let perc = Math.min((real / b.limit) * 100, 100);
@@ -1213,10 +1259,14 @@
             if (realPerc >= 100) { barColor = 'var(--bg-stat-red)'; } 
             else if (realPerc >= 85) { barColor = 'var(--bg-stat-yellow)'; }
 
+            // INTEGRACIÓN UX: Botones de control limpios para Editar topes e inflación y Eliminar metas
             bList.innerHTML += `
                 <div class="budget-card">
                     <strong>${b.name}</strong>
-                    <button type="button" onclick="window.deleteBudget(${idx})" style="float:right; border:none; background:none; color:var(--bg-stat-red); cursor:pointer;">✕</button>
+                    <div style="float:right; display:flex; gap:8px;">
+                        <button type="button" onclick="window.editBudget(${idx})" style="border:none; background:none; color:var(--text-muted); cursor:pointer; font-size:1.1em;">✏️</button>
+                        <button type="button" onclick="window.deleteBudget(${idx})" style="border:none; background:none; color:var(--bg-stat-red); cursor:pointer; font-size:1.1em;">✕</button>
+                    </div>
                     <div class="progress-container"><div class="progress-bar" style="width:${perc}%; background:${barColor}"></div></div>
                     <div style="display:flex; justify-content:space-between; font-size:0.85em;">
                         <span>Gastado: <b style="color:${realPerc >= 100 ? 'var(--bg-stat-red)' : 'inherit'}">${window.formatAmount(real, activeWorkspaceCurrency)}</b></span>
@@ -1232,7 +1282,6 @@
         if(!db.simulations) db.simulations = [];
         const labels = ['Hoy', '+1 Mes', '+2 Meses', '+3 Meses', '+4 Meses', '+5 Meses', '+6 Meses'];
         
-        // PROYECCIÓN SEPARADA: Filtrar solo las cuentas que manejan la moneda del espacio de trabajo
         const activeWorkspaceCurrency = currentWorkspaceCurrency;
         const activeWallets = db.wallets.filter(w => w.currency === activeWorkspaceCurrency);
 
@@ -1329,14 +1378,13 @@
             } 
         });
 
-        // FILTRAR EVENTOS FUTUROS EN PANTALLA SEGÚN CONTEXTO ACTIVO
         const simList = document.getElementById('sim-list');
         simList.innerHTML = '';
         const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         db.simulations.forEach(sim => {
             let wObj = db.wallets.find(w => w.name === sim.wallet);
             let wCurr = wObj ? wObj.currency : 'CLP';
-            if (wCurr !== activeWorkspaceCurrency) return; // Ocultar si no corresponde al espacio activo
+            if (wCurr !== activeWorkspaceCurrency) return; 
 
             let sMonths = sim.months || [sim.month];
             const mNames = sMonths.map(sm => monthNames[parseInt(sm)-1]).join(", ");
