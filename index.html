@@ -462,20 +462,26 @@
     selMonth.value = String(now.getMonth() + 1).padStart(2, '0');
     selYear.value = now.getFullYear();
 
-    // NUEVO MOTOR DE HERENCIA: Asegura que el presupuesto estratégico persista de meses anteriores
+    // MOTOR DE HERENCIA MEJORADO: Fuerza la copia de presupuestos pasados si el mes actual tiene el listado vacío
     function initMonthData(key) {
+        if (!db.months) db.months = {};
         if (!db.months[key]) {
+            db.months[key] = { entries: [], budgets: [] };
+        }
+        
+        // Si el mes existe pero su lista de presupuestos está en blanco, viaja de forma inteligente al pasado
+        if (!db.months[key].budgets || db.months[key].budgets.length === 0) {
             let copiedBudgets = [];
             const sortedKeys = Object.keys(db.months).sort();
-            if (sortedKeys.length > 0) {
-                for (let i = sortedKeys.length - 1; i >= 0; i--) {
-                    if (db.months[sortedKeys[i]].budgets && db.months[sortedKeys[i]].budgets.length > 0) {
-                        copiedBudgets = JSON.parse(JSON.stringify(db.months[sortedKeys[i]].budgets));
-                        break;
-                    }
+            for (let i = sortedKeys.length - 1; i >= 0; i--) {
+                const k = sortedKeys[i];
+                // Busca estrictamente en meses anteriores que sí tengan metas guardadas
+                if (k < key && db.months[k].budgets && db.months[k].budgets.length > 0) {
+                    copiedBudgets = JSON.parse(JSON.stringify(db.months[k].budgets));
+                    break;
                 }
             }
-            db.months[key] = { entries: [], budgets: copiedBudgets };
+            db.months[key].budgets = copiedBudgets;
         }
         return db.months[key];
     }
@@ -863,7 +869,6 @@
             
             const budgetObj = { name, limit, categories: selectedCats, currency: currentWorkspaceCurrency };
 
-            // Permite modificar topes por inflación o reajuste sin perder historial del pasado
             if (editIdx !== "") {
                 db.months[key].budgets[parseInt(editIdx)] = budgetObj;
                 document.getElementById('budget-edit-idx').value = "";
@@ -1259,7 +1264,6 @@
             if (realPerc >= 100) { barColor = 'var(--bg-stat-red)'; } 
             else if (realPerc >= 85) { barColor = 'var(--bg-stat-yellow)'; }
 
-            // INTEGRACIÓN UX: Botones de control limpios para Editar topes e inflación y Eliminar metas
             bList.innerHTML += `
                 <div class="budget-card">
                     <strong>${b.name}</strong>
