@@ -242,7 +242,8 @@
             </select>
             <small id="set-curr-warning" style="color:var(--bg-stat-red); display:none; margin-top:-10px;">Solo 3 monedas permitidas.</small>
 
-            <label>Cuenta Principal (Para dictado por voz)</label>
+            <!-- MEJORA UX: Naming mucho más preciso para el alcance global -->
+            <label>Cuenta Principal por Defecto</label>
             <select id="set-main-wallet" required></select>
 
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 5px 0;">
@@ -448,7 +449,6 @@
     const defaultCatIngresos = ["Salario Principal", "Ahorro", "Rendimientos/Inversión", "Devolución", "Ventas Extras", "Saldo Inicial"];
     const catTransferencias = ["Ahorro", "Inversión", "Pago Tarjeta", "Movimiento Interno", "Fondo Emergencia", "Otro"];
     
-    // DEFINICIÓN DE PERFILES FINANCIEROS PARA EL MOTOR PREDICTIVO
     const fixedPredictiveCats = ["Arriendo", "Gastos Comunes", "Luz", "Agua", "Gas", "Internet", "Móvil", "Pensión", "Créditos", "Tarjetas de Crédito", "Salario Principal"];
     const variablePredictiveCats = ["Supermercado", "Transporte", "Salidas/Ocio", "Compras", "Mascotas", "Salud", "Mantenimiento", "Otro", "Ventas Extras"];
 
@@ -768,6 +768,17 @@
             });
         }
 
+        // MEJORA IMPLEMENTADA: Pre-seleccionar la cuenta principal por defecto en los formularios y simuladores de manera permanente
+        if (db.profile && db.profile.mainWallet) {
+            const optionExists = Array.from(wSelect.options).some(o => o.value === db.profile.mainWallet);
+            if (optionExists) {
+                wSelect.value = db.profile.mainWallet;
+            }
+            if (simWalletSelect && Array.from(simWalletSelect.options).some(o => o.value === db.profile.mainWallet)) {
+                simWalletSelect.value = db.profile.mainWallet;
+            }
+        }
+
         const multi = document.getElementById('budget-cats-multi');
         multi.innerHTML = '';
         (db.profile.catGastos || defaultCatGastos).forEach(c => multi.add(new Option(c, c)));
@@ -853,7 +864,7 @@
         document.getElementById('btn-save').innerText = 'Guardar Registro';
         document.getElementById('finance-form').reset(); 
         
-        if(db.profile && db.profile.mainWallet) document.getElementById('wallet-select').value = db.profile.mainWallet;
+        // Retorna automáticamente a la cuenta principal al procesar la entrada
         window.populateCategories(); 
         await window.saveDataCloud(); 
     };
@@ -982,6 +993,7 @@
         if(e.type === 'ingreso') tabBtns[1].click();
         if(e.type === 'transferencia') tabBtns[2].click();
 
+        // Sobrescribe temporalmente la pre-selección de cuenta principal por el valor guardado
         document.getElementById('wallet-select').value = e.wallet;
         if(e.type === 'transferencia') document.getElementById('wallet-dest-select').value = e.walletDest;
         document.getElementById('cat-select').value = e.category;
@@ -1283,7 +1295,6 @@
         window.updateMultiAccountProjection(walletTotals, key);
     };
 
-    // NUEVO MOTOR FINANCIERO PREDICTIVO AVANZADO POR PERFILES DE CATEGORÍA
     window.updateMultiAccountProjection = function(currentBalances, currentMonthKey) {
         if(!db.simulations) db.simulations = [];
         const labels = ['Hoy', '+1 Mes', '+2 Meses', '+3 Meses', '+4 Meses', '+5 Meses', '+6 Meses'];
@@ -1291,7 +1302,6 @@
         const activeWorkspaceCurrency = currentWorkspaceCurrency;
         const activeWallets = db.wallets.filter(w => w.currency === activeWorkspaceCurrency);
 
-        // 1. Calcular el Promedio Histórico para Gastos Variables en esta moneda específica
         let catAverages = {};
         variablePredictiveCats.forEach(cat => catAverages[cat] = 0);
         let recordedMonths = Object.keys(db.months);
@@ -1308,7 +1318,6 @@
             catAverages[cat] = catAverages[cat] / totalMonthsCount;
         });
 
-        // 2. Extraer los Flujos Fijos de este mes (Que se clonarán hacia adelante)
         let fixedFlows = [];
         if(db.months[currentMonthKey] && db.months[currentMonthKey].entries) {
             db.months[currentMonthKey].entries.forEach(e => {
@@ -1324,12 +1333,8 @@
 
         let startMonth = parseInt(document.getElementById('sel-month').value);
 
-        // 3. Simular el futuro mes a mes (Horizonte de 6 meses)
         for(let m = 1; m <= 6; m++) {
-            
-            // Aplicar costos Fijos del usuario (Ej: Arriendo, Salarios)
             fixedFlows.forEach(flow => {
-                // Algoritmo de Inflación Compuesta: Arriendo sube 1.2% cada 3 meses sólo en CLP
                 if(flow.category === 'Arriendo' && (m % 3 === 0) && activeWorkspaceCurrency === 'CLP') {
                     flow.amount = flow.amount * 1.012; 
                 }
@@ -1343,22 +1348,18 @@
                 }
             });
 
-            // Aplicar Línea Base de Gastos Variables promediados automáticamente
             Object.keys(catAverages).forEach(cat => {
                 const avgAmount = catAverages[cat];
                 if (avgAmount > 0 && activeWallets.length > 0) {
-                    // Impacta de forma predeterminada a la billetera principal del perfil
                     const targetWalletName = db.profile.mainWallet || activeWallets[0].name;
                     const walletObj = db.wallets.find(w => w.name === targetWalletName);
                     
                     if(walletObj && walletObj.currency === activeWorkspaceCurrency && simBalances[targetWalletName] !== undefined) {
-                        // Como es un gasto variable promedio, resta del balance futuro
                         simBalances[targetWalletName] -= avgAmount;
                     }
                 }
             });
 
-            // Aplicar Simulaciones Discretas de Eventos Futuros (Sandbox)
             let currentSimMonth = startMonth + m;
             if (currentSimMonth > 12) currentSimMonth -= 12;
 
@@ -1377,7 +1378,6 @@
             activeWallets.forEach(w => { historyPts[w.name].push(simBalances[w.name] || 0); });
         }
 
-        // 4. Renderizar Gráfica y Detalles en Interfaz
         const datasets = [];
         const chartColors = ['#1a2a6c', '#0F9D58', '#E67E22', '#8e44ad', '#16a085', '#c0392b', '#2c3e50']; 
         const chartType = document.getElementById('chart-type') ? document.getElementById('chart-type').value : 'line';
