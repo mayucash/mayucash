@@ -81,7 +81,7 @@
         .tab-btn.active { color: var(--primary-btn); border-bottom-color: var(--primary-btn); }
         .tab-btn:hover { color: var(--text-dark); }
 
-        /* SISTEMA DINÁMICO DE FORMULARIOS */
+        /* FORMULARIOS SIMPLES */
         .form-flex { display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: flex-end; gap: 10px; width: 100%; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
         .form-flex::-webkit-scrollbar, .filters-container::-webkit-scrollbar { height: 6px; }
         .form-flex::-webkit-scrollbar-thumb, .filters-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
@@ -92,7 +92,7 @@
         button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 0 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; flex: 0 0 auto; white-space: nowrap; margin-top: 0; }
         button.btn-primary:hover { opacity: 0.9; }
 
-        /* TABLAS Y EXTRAS */
+        /* TABLAS RESPONSIVAS */
         .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 0.8em; color: var(--text-muted); font-weight: 600; }
@@ -350,6 +350,7 @@
         <div class="pagination" id="pagination-controls"></div>
     </div>
 
+    <!-- WORKSPACE TABS -->
     <h4 style="margin: 25px 0 5px 0; color: var(--text-dark); font-weight: 700;">⚙️ Moneda del Entorno de Trabajo (Presupuesto y Proyección)</h4>
     <div class="tabs-container" id="currency-workspace-tabs" style="margin-bottom: 20px;">
     </div>
@@ -381,8 +382,7 @@
             </div>
             
             <p style="font-size: 0.8em; color: var(--text-muted); margin-top: 0; margin-bottom: 5px;">
-                Simula Ingresos, Gastos y Transferencias basados en tu balance actual.<br>
-                <b>*Arriendo:</b> Si aplica en la moneda, calcula inflación simulada.
+                Simulación inteligente: El sistema replica automáticamente tus costos fijos y calcula la línea base de tus gastos de consumo promediando tu historial.
             </p>
             <div class="chart-wrapper">
                 <canvas id="projectionChart"></canvas>
@@ -448,6 +448,10 @@
     const defaultCatIngresos = ["Salario Principal", "Ahorro", "Rendimientos/Inversión", "Devolución", "Ventas Extras", "Saldo Inicial"];
     const catTransferencias = ["Ahorro", "Inversión", "Pago Tarjeta", "Movimiento Interno", "Fondo Emergencia", "Otro"];
     
+    // DEFINICIÓN DE PERFILES FINANCIEROS PARA EL MOTOR PREDICTIVO
+    const fixedPredictiveCats = ["Arriendo", "Gastos Comunes", "Luz", "Agua", "Gas", "Internet", "Móvil", "Pensión", "Créditos", "Tarjetas de Crédito", "Salario Principal"];
+    const variablePredictiveCats = ["Supermercado", "Transporte", "Salidas/Ocio", "Compras", "Mascotas", "Salud", "Mantenimiento", "Otro", "Ventas Extras"];
+
     let chart;
     let currentPage = 1;
     const itemsPerPage = 10;
@@ -462,20 +466,17 @@
     selMonth.value = String(now.getMonth() + 1).padStart(2, '0');
     selYear.value = now.getFullYear();
 
-    // MOTOR DE HERENCIA MEJORADO: Fuerza la copia de presupuestos pasados si el mes actual tiene el listado vacío
     function initMonthData(key) {
         if (!db.months) db.months = {};
         if (!db.months[key]) {
             db.months[key] = { entries: [], budgets: [] };
         }
         
-        // Si el mes existe pero su lista de presupuestos está en blanco, viaja de forma inteligente al pasado
         if (!db.months[key].budgets || db.months[key].budgets.length === 0) {
             let copiedBudgets = [];
             const sortedKeys = Object.keys(db.months).sort();
             for (let i = sortedKeys.length - 1; i >= 0; i--) {
                 const k = sortedKeys[i];
-                // Busca estrictamente en meses anteriores que sí tengan metas guardadas
                 if (k < key && db.months[k].budgets && db.months[k].budgets.length > 0) {
                     copiedBudgets = JSON.parse(JSON.stringify(db.months[k].budgets));
                     break;
@@ -1138,14 +1139,14 @@
         const data = db.months[key];
         
         let mInc = {}, mExp = {}, mCount = {}, totalBal = {};
-        let walletTotals = {}, walletFixedRates = {};
+        let walletTotals = {};
         
         let expensesByCat = {}; 
         db.profile.currencies.forEach(c => { 
             mInc[c] = 0; mExp[c] = 0; mCount[c] = 0; totalBal[c] = 0; 
             expensesByCat[c] = {};
         });
-        db.wallets.forEach(w => { walletTotals[w.name] = 0; walletFixedRates[w.name] = 0; });
+        db.wallets.forEach(w => { walletTotals[w.name] = 0; });
 
         Object.keys(db.months).forEach(k => {
             (db.months[k].entries || []).forEach(e => {
@@ -1282,6 +1283,7 @@
         window.updateMultiAccountProjection(walletTotals, key);
     };
 
+    // NUEVO MOTOR FINANCIERO PREDICTIVO AVANZADO POR PERFILES DE CATEGORÍA
     window.updateMultiAccountProjection = function(currentBalances, currentMonthKey) {
         if(!db.simulations) db.simulations = [];
         const labels = ['Hoy', '+1 Mes', '+2 Meses', '+3 Meses', '+4 Meses', '+5 Meses', '+6 Meses'];
@@ -1289,10 +1291,28 @@
         const activeWorkspaceCurrency = currentWorkspaceCurrency;
         const activeWallets = db.wallets.filter(w => w.currency === activeWorkspaceCurrency);
 
+        // 1. Calcular el Promedio Histórico para Gastos Variables en esta moneda específica
+        let catAverages = {};
+        variablePredictiveCats.forEach(cat => catAverages[cat] = 0);
+        let recordedMonths = Object.keys(db.months);
+        let totalMonthsCount = recordedMonths.length || 1;
+
+        recordedMonths.forEach(k => {
+            (db.months[k].entries || []).forEach(e => {
+                if (e.currency === activeWorkspaceCurrency && variablePredictiveCats.includes(e.category)) {
+                    catAverages[e.category] = (catAverages[e.category] || 0) + e.amount;
+                }
+            });
+        });
+        Object.keys(catAverages).forEach(cat => {
+            catAverages[cat] = catAverages[cat] / totalMonthsCount;
+        });
+
+        // 2. Extraer los Flujos Fijos de este mes (Que se clonarán hacia adelante)
         let fixedFlows = [];
         if(db.months[currentMonthKey] && db.months[currentMonthKey].entries) {
             db.months[currentMonthKey].entries.forEach(e => {
-                if(e.freq === 'fijo' && e.category !== 'Saldo Inicial' && e.currency === activeWorkspaceCurrency) {
+                if(fixedPredictiveCats.includes(e.category) && e.category !== 'Saldo Inicial' && e.currency === activeWorkspaceCurrency) {
                     fixedFlows.push(JSON.parse(JSON.stringify(e))); 
                 }
             });
@@ -1304,9 +1324,16 @@
 
         let startMonth = parseInt(document.getElementById('sel-month').value);
 
+        // 3. Simular el futuro mes a mes (Horizonte de 6 meses)
         for(let m = 1; m <= 6; m++) {
+            
+            // Aplicar costos Fijos del usuario (Ej: Arriendo, Salarios)
             fixedFlows.forEach(flow => {
-                if(flow.category === 'Arriendo' && (m % 3 === 0) && activeWorkspaceCurrency === 'CLP') flow.amount = flow.amount * 1.012; 
+                // Algoritmo de Inflación Compuesta: Arriendo sube 1.2% cada 3 meses sólo en CLP
+                if(flow.category === 'Arriendo' && (m % 3 === 0) && activeWorkspaceCurrency === 'CLP') {
+                    flow.amount = flow.amount * 1.012; 
+                }
+                
                 if(flow.type === 'transferencia') {
                     if(simBalances[flow.wallet] !== undefined) simBalances[flow.wallet] -= flow.amount;
                     if(simBalances[flow.walletDest] !== undefined) simBalances[flow.walletDest] += flow.amount;
@@ -1316,6 +1343,22 @@
                 }
             });
 
+            // Aplicar Línea Base de Gastos Variables promediados automáticamente
+            Object.keys(catAverages).forEach(cat => {
+                const avgAmount = catAverages[cat];
+                if (avgAmount > 0 && activeWallets.length > 0) {
+                    // Impacta de forma predeterminada a la billetera principal del perfil
+                    const targetWalletName = db.profile.mainWallet || activeWallets[0].name;
+                    const walletObj = db.wallets.find(w => w.name === targetWalletName);
+                    
+                    if(walletObj && walletObj.currency === activeWorkspaceCurrency && simBalances[targetWalletName] !== undefined) {
+                        // Como es un gasto variable promedio, resta del balance futuro
+                        simBalances[targetWalletName] -= avgAmount;
+                    }
+                }
+            });
+
+            // Aplicar Simulaciones Discretas de Eventos Futuros (Sandbox)
             let currentSimMonth = startMonth + m;
             if (currentSimMonth > 12) currentSimMonth -= 12;
 
@@ -1334,6 +1377,7 @@
             activeWallets.forEach(w => { historyPts[w.name].push(simBalances[w.name] || 0); });
         }
 
+        // 4. Renderizar Gráfica y Detalles en Interfaz
         const datasets = [];
         const chartColors = ['#1a2a6c', '#0F9D58', '#E67E22', '#8e44ad', '#16a085', '#c0392b', '#2c3e50']; 
         const chartType = document.getElementById('chart-type') ? document.getElementById('chart-type').value : 'line';
