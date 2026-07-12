@@ -311,8 +311,9 @@
             <input type="hidden" id="edit-id">
             <input type="hidden" id="type-select" value="gasto">
 
-            <div class="form-group full-width-mob" style="flex: 2 1 200px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Supermercado..." required></div>
+            <!-- MEJORA UX: Monto movido inteligentemente a la primera posición del formulario -->
             <div class="form-group half-width-mob" style="flex: 1 1 120px;"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
+            <div class="form-group full-width-mob" style="flex: 2 1 200px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Supermercado..." required></div>
             
             <div class="form-group half-width-mob" id="cat-group" style="flex: 2 1 150px;"><label>Categoría</label><select id="cat-select" required></select></div>
             
@@ -1242,7 +1243,6 @@
             let route = e.type === 'transferencia' ? `${e.wallet} ➔ ${e.walletDest}` : e.wallet;
             let color = e.type === 'ingreso' ? 'text-green' : (e.type === 'gasto' ? 'text-red' : '');
             
-            // MEJORA SOLICITADA: Extracción e inyección sutil de la fecha de registro bajo la Nota
             let entryDate = new Date(e.id);
             let formattedDate = !isNaN(entryDate.getTime()) ? entryDate.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
 
@@ -1395,7 +1395,7 @@
             
             if(chartType === 'line') {
                 if (index === 0) detailDiv.innerHTML = '<h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Saldo proyectado a fin de mes:</h5>';
-                const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+                const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct Nov","Dic"];
                 let html = `<div class="projection-item" style="flex-direction:column; align-items:flex-start; border:none; padding:0; margin-bottom:15px;">`;
                 html += `<strong style="font-size:0.9em; color:var(--text-dark); margin-bottom:5px;">🏦 ${w.name}</strong>`;
                 html += `<div style="display:flex; gap:8px; overflow-x:auto; width:100%; padding-bottom:8px; -webkit-overflow-scrolling: touch;">`;
