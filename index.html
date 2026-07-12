@@ -242,7 +242,6 @@
             </select>
             <small id="set-curr-warning" style="color:var(--bg-stat-red); display:none; margin-top:-10px;">Solo 3 monedas permitidas.</small>
 
-            <!-- MEJORA UX: Naming mucho más preciso para el alcance global -->
             <label>Cuenta Principal por Defecto</label>
             <select id="set-main-wallet" required></select>
 
@@ -768,7 +767,6 @@
             });
         }
 
-        // MEJORA IMPLEMENTADA: Pre-seleccionar la cuenta principal por defecto en los formularios y simuladores de manera permanente
         if (db.profile && db.profile.mainWallet) {
             const optionExists = Array.from(wSelect.options).some(o => o.value === db.profile.mainWallet);
             if (optionExists) {
@@ -864,7 +862,6 @@
         document.getElementById('btn-save').innerText = 'Guardar Registro';
         document.getElementById('finance-form').reset(); 
         
-        // Retorna automáticamente a la cuenta principal al procesar la entrada
         window.populateCategories(); 
         await window.saveDataCloud(); 
     };
@@ -993,7 +990,6 @@
         if(e.type === 'ingreso') tabBtns[1].click();
         if(e.type === 'transferencia') tabBtns[2].click();
 
-        // Sobrescribe temporalmente la pre-selección de cuenta principal por el valor guardado
         document.getElementById('wallet-select').value = e.wallet;
         if(e.type === 'transferencia') document.getElementById('wallet-dest-select').value = e.walletDest;
         document.getElementById('cat-select').value = e.category;
@@ -1245,8 +1241,16 @@
         pagedEntries.forEach(e => {
             let route = e.type === 'transferencia' ? `${e.wallet} ➔ ${e.walletDest}` : e.wallet;
             let color = e.type === 'ingreso' ? 'text-green' : (e.type === 'gasto' ? 'text-red' : '');
+            
+            // MEJORA SOLICITADA: Extracción e inyección sutil de la fecha de registro bajo la Nota
+            let entryDate = new Date(e.id);
+            let formattedDate = !isNaN(entryDate.getTime()) ? entryDate.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+
             body.innerHTML += `<tr>
-                <td>${e.desc}</td>
+                <td>
+                    <div style="font-weight: 500; color: var(--text-dark);">${e.desc}</div>
+                    <div style="font-size: 0.75em; color: #95a5a6; margin-top: 3px; font-weight: normal;">${formattedDate}</div>
+                </td>
                 <td class="${color}"><b>${window.formatAmount(e.amount, e.currency)}</b></td>
                 <td>${e.category}</td>
                 <td>${route}</td>
