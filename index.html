@@ -7,181 +7,399 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { 
-            --bg-body: #f4f6f8;
+            --bg-body: #f5f5f7; /* Apple signature light grey */
             --bg-card: #ffffff;
-            --bg-hero-main: #cccccc; 
-            --bg-stat-green: #4ca75b; 
-            --bg-stat-red: #ef5350;   
-            --bg-stat-yellow: #eeb83e; 
-            --bg-stat-purple: #8e44ad; /* Variable de color para gasto excesivo */
-            --text-dark: #2c3e50;
-            --text-muted: #7f8c8d;
-            --border-color: #eaeded;
-            --primary-btn: #2c3e50;
+            --bg-hero-main: #1d1d1f; /* Obsidian black */
+            --bg-stat-green: #34c759; /* iOS Green */
+            --bg-stat-red: #ff3b30;   /* iOS Red */
+            --bg-stat-yellow: #ffcc00; /* iOS Yellow */
+            --bg-stat-purple: #af52de; /* iOS Purple */
+            --text-dark: #1d1d1f;
+            --text-muted: #86868b; /* Apple muted text */
+            --border-color: rgba(0, 0, 0, 0.08);
+            --primary-btn: #0071e3; /* Apple Blue */
+            --primary-btn-hover: #0077ed;
+            --card-shadow: 0 8px 30px rgba(0,0,0,0.04);
+            --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-body); margin: 0; padding: 20px; color: var(--text-dark); padding-bottom: 80px; }
-        .container { max-width: 1100px; margin: auto; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg-body); 
+            margin: 0; 
+            padding: 20px; 
+            color: var(--text-dark); 
+            padding-bottom: 100px;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container { max-width: 1000px; margin: auto; }
         .hidden { display: none !important; }
 
         /* PANTALLAS (Auth y Onboarding) */
-        .auth-container { max-width: 450px; margin: 60px auto; background: var(--bg-card); padding: 35px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; }
-        .auth-container h2 { margin-top: 0; margin-bottom: 10px; font-weight: 700; }
-        .auth-form { display: flex; flex-direction: column; gap: 15px; text-align: left; }
-        .auth-form label { font-size: 0.85em; font-weight: 600; color: var(--text-muted); margin-bottom: -10px; }
-        .auth-form input, .auth-form select, .auth-form textarea { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-family: inherit; font-size: 14px;}
-        .auth-btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        .auth-btn-group button { flex: 1; height: 42px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; color: white; transition: opacity 0.2s; }
-        .auth-btn-group button:hover { opacity: 0.9; }
+        .auth-container { 
+            max-width: 440px; 
+            margin: 80px auto; 
+            background: var(--bg-card); 
+            padding: 40px; 
+            border-radius: 24px; 
+            border: 1px solid var(--border-color); 
+            box-shadow: var(--card-shadow); 
+            text-align: center; 
+        }
+        .auth-container h2 { margin-top: 0; margin-bottom: 10px; font-weight: 700; letter-spacing: -0.5px; }
+        .auth-form { display: flex; flex-direction: column; gap: 18px; text-align: left; }
+        .auth-form label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: -12px; }
+        .auth-form input, .auth-form select, .auth-form textarea { 
+            width: 100%; 
+            padding: 12px 16px; 
+            border-radius: 12px; 
+            border: 1.5px solid var(--border-color); 
+            font-family: inherit; 
+            font-size: 15px;
+            background: var(--bg-body);
+            transition: var(--transition-smooth);
+            outline: none;
+        }
+        .auth-form input:focus, .auth-form select:focus, .auth-form textarea:focus {
+            border-color: var(--primary-btn);
+            background: var(--bg-card);
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
+        }
+        .auth-btn-group { display: flex; gap: 12px; margin-top: 10px; }
+        .auth-btn-group button { 
+            flex: 1; 
+            height: 46px; 
+            border-radius: 12px; 
+            border: none; 
+            font-weight: 600; 
+            font-size: 15px;
+            cursor: pointer; 
+            color: white; 
+            transition: var(--transition-smooth); 
+        }
+        .auth-btn-group button:hover { transform: translateY(-1px); filter: brightness(1.1); }
         .btn-auth-main { background: var(--primary-btn); }
-        .btn-secondary { background: #7f8c8d !important; }
+        .btn-secondary { background: #e8e8ed !important; color: var(--text-dark) !important; }
 
         /* MODAL (Configuración) */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; padding: 20px 0;}
-        .modal-content { background: var(--bg-card); padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin: auto;}
-        .modal-content h3 { margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; padding: 20px 0;}
+        .modal-content { background: var(--bg-card); padding: 35px; border-radius: 24px; width: 90%; max-width: 450px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); margin: auto; border: 1px solid var(--border-color);}
+        .modal-content h3 { margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; font-weight: 700; letter-spacing: -0.5px; }
 
         /* ENCABEZADO */
-        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
-        .header-title { font-size: 1.2em; font-weight: 700; margin: 0; }
-        .controls-flex { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .btn-icon { background: var(--bg-card); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 1.1em; transition: 0.2s; }
-        .btn-icon:hover { background: #f0f2f5; }
-        select, input { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 14px; background: var(--bg-card); color: var(--text-dark); outline: none; height: 42px; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        .header-title { font-size: 1.5em; font-weight: 800; margin: 0; letter-spacing: -0.8px; display: flex; align-items: center; gap: 10px; }
+        .controls-flex { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .btn-icon { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            padding: 10px 14px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-size: 1.1em; 
+            transition: var(--transition-smooth); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .btn-icon:hover { background: #e8e8ed; transform: translateY(-1px); }
+        select, input { 
+            padding: 10px 14px; 
+            border-radius: 12px; 
+            border: 1.5px solid var(--border-color); 
+            font-size: 14px; 
+            background: var(--bg-card); 
+            color: var(--text-dark); 
+            outline: none; 
+            height: 42px; 
+            font-family: inherit;
+            transition: var(--transition-smooth);
+        }
+        select:focus, input:focus {
+            border-color: var(--primary-btn);
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
+        }
+
+        /* TARJETA INTERACTIVA DE ASISTENTE DE IA (Mayu Coach) */
+        .ai-coach-card {
+            background: linear-gradient(135deg, #efe6ff 0%, #e2f1ff 100%);
+            border: 1.5px dashed rgba(175, 82, 222, 0.25);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            box-shadow: 0 4px 20px rgba(175, 82, 222, 0.05);
+            transition: var(--transition-smooth);
+        }
+        .ai-coach-card:hover {
+            transform: scale(1.005);
+            box-shadow: 0 6px 24px rgba(175, 82, 222, 0.08);
+        }
+        .ai-avatar {
+            font-size: 2.2em;
+            background: white;
+            padding: 10px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0px); }
+        }
+        .ai-message { flex-grow: 1; }
+        .ai-name {
+            font-size: 0.8em;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--bg-stat-purple);
+            display: block;
+            margin-bottom: 4px;
+        }
+        .ai-text {
+            margin: 0;
+            font-size: 0.95em;
+            line-height: 1.45;
+            color: #3a3a3c;
+            font-weight: 500;
+        }
 
         /* HERO CARDS */
-        .hero-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .hero-card { background: var(--bg-hero-main); border-radius: 10px; padding: 15px; color: white; }
-        .hero-label { font-size: 0.85em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-        .hero-main-amount { font-size: 2em; font-weight: 800; margin-bottom: 15px; line-height: 1; }
-        .hero-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-        .hero-stat { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 8px; text-align: left; align-items: flex-start; }
-        .hero-stat-label { font-size: 0.7em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-        .hero-stat-value { font-size: 0.8em; font-weight: 800; white-space: nowrap; }
-        .bg-verde-stat { background-color: var(--bg-stat-green); }
-        .bg-rojo-stat { background-color: var(--bg-stat-red); }
-        .bg-amarillo-stat { background-color: var(--bg-stat-yellow); }
+        .hero-summary { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 25px; }
+        @media (min-width: 768px) {
+            .hero-summary { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        }
+        .hero-card { 
+            background: var(--bg-hero-main); 
+            border-radius: 20px; 
+            padding: 24px; 
+            color: white; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .hero-label { font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
+        .hero-main-amount { font-size: 2.2em; font-weight: 800; margin-bottom: 20px; line-height: 1; letter-spacing: -1px; }
+        .hero-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .hero-stat { display: flex; flex-direction: column; padding: 12px; border-radius: 12px; text-align: left; transition: var(--transition-smooth); }
+        .hero-stat:hover { filter: brightness(1.08); }
+        .hero-stat-label { font-size: 0.65em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; color: rgba(255,255,255,0.7); }
+        .hero-stat-value { font-size: 0.85em; font-weight: 800; white-space: nowrap; }
+        .bg-verde-stat { background-color: rgba(52, 199, 89, 0.25); border: 1px solid rgba(52, 199, 89, 0.4); color: #34c759; }
+        .bg-rojo-stat { background-color: rgba(255, 59, 48, 0.25); border: 1px solid rgba(255, 59, 48, 0.4); color: #ff3b30; }
+        .bg-amarillo-stat { background-color: rgba(255, 204, 0, 0.25); border: 1px solid rgba(255, 204, 0, 0.4); color: #ffcc00; }
 
         /* SECCIONES Y DRAG & DROP */
-        .section { background: var(--bg-card); padding: 22px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color); position: relative; }
-        .section-header { margin-top: 0; margin-bottom: 18px; font-size: 1.1em; color: var(--text-dark); font-weight: 600; padding-bottom: 8px; border-bottom: 2px solid var(--border-color); }
-        .accounts-bar { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; }
-        .account-pill { position: relative; min-width: 120px; padding: 10px 12px; border-radius: 8px; background: #f8f9fa; border: 2px solid var(--border-color); flex-shrink: 0; cursor: grab; transition: transform 0.2s; }
+        .section { background: var(--bg-card); padding: 26px; border-radius: 20px; margin-bottom: 25px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); position: relative; }
+        .section-header { margin-top: 0; margin-bottom: 20px; font-size: 1.25em; color: var(--text-dark); font-weight: 800; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); letter-spacing: -0.5px; }
+        
+        .accounts-bar { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 18px; scrollbar-width: none; -ms-overflow-style: none; }
+        .accounts-bar::-webkit-scrollbar { display: none; }
+        
+        .account-pill { 
+            position: relative; 
+            min-width: 140px; 
+            padding: 14px 16px; 
+            border-radius: 16px; 
+            background: #f5f5f7; 
+            border: 1.5px solid transparent; 
+            flex-shrink: 0; 
+            cursor: grab; 
+            transition: var(--transition-smooth); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .account-pill:hover { background: #e8e8ed; transform: translateY(-2px); }
         .account-pill:active { cursor: grabbing; }
         .account-pill.dragging { opacity: 0.4; transform: scale(0.95); }
-        .account-pill.drag-over { border-color: var(--primary-btn); background: #fdfdfd; border-style: dashed; }
-        .account-pill .name { font-size: 0.7em; color: var(--text-muted); font-weight: 600; text-transform: uppercase; pointer-events: none; }
-        .account-pill .val { font-size: 1.05em; font-weight: 700; display: block; color: var(--text-dark); pointer-events: none; }
-        .btn-delete-wallet { position: absolute; top: 2px; right: 2px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 10px; padding: 2px 4px; z-index: 10; }
-        .btn-delete-wallet:hover { color: var(--bg-stat-red); }
+        .account-pill.drag-over { border-color: var(--primary-btn); background: #ffffff; border-style: dashed; }
+        .account-pill .name { font-size: 0.7em; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; pointer-events: none; }
+        .account-pill .val { font-size: 1.15em; font-weight: 800; display: block; color: var(--text-dark); pointer-events: none; margin-top: 4px; letter-spacing: -0.5px;}
+        .btn-delete-wallet { position: absolute; top: 6px; right: 6px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 11px; padding: 4px; z-index: 10; border-radius: 50%; transition: var(--transition-smooth); }
+        .btn-delete-wallet:hover { color: var(--bg-stat-red); background: rgba(255,59,48,0.1); }
 
         /* TABS */
-        .tabs-container { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--border-color); overflow-x: auto; }
-        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 1em; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.2s; white-space: nowrap; }
+        .tabs-container { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); overflow-x: auto; scrollbar-width: none; }
+        .tabs-container::-webkit-scrollbar { display: none; }
+        .tab-btn { 
+            background: none; 
+            border: none; 
+            padding: 12px 20px; 
+            font-size: 0.95em; 
+            font-weight: 700; 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            border-bottom: 2.5px solid transparent; 
+            margin-bottom: -1px; 
+            transition: var(--transition-smooth); 
+            white-space: nowrap; 
+        }
         .tab-btn.active { color: var(--primary-btn); border-bottom-color: var(--primary-btn); }
         .tab-btn:hover { color: var(--text-dark); }
 
-        /* FORMULARIOS SIMPLES */
-        .form-flex { display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: flex-end; gap: 10px; width: 100%; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
-        .form-flex::-webkit-scrollbar, .filters-container::-webkit-scrollbar { height: 6px; }
-        .form-flex::-webkit-scrollbar-thumb, .filters-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        /* FORMULARIOS */
+        .form-flex { display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: flex-end; gap: 12px; width: 100%; padding-bottom: 5px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; min-width: 110px; }
+        .form-group label { font-size: 0.75em; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         
-        .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1 1 auto; min-width: 100px; }
-        .form-group label { font-size: 0.8em; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
-        
-        button.btn-primary { background: var(--primary-btn); color: white; border: none; font-weight: 600; padding: 0 20px; border-radius: 8px; cursor: pointer; height: 42px; transition: opacity 0.2s; flex: 0 0 auto; white-space: nowrap; margin-top: 0; }
-        button.btn-primary:hover { opacity: 0.9; }
+        button.btn-primary { 
+            background: var(--primary-btn); 
+            color: white; 
+            border: none; 
+            font-weight: 700; 
+            padding: 0 24px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            height: 42px; 
+            transition: var(--transition-smooth); 
+            flex: 0 0 auto; 
+            white-space: nowrap; 
+            margin-top: 0; 
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.15);
+        }
+        button.btn-primary:hover { background: var(--primary-btn-hover); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0, 113, 227, 0.25); }
+        button.btn-primary:active { transform: translateY(0); }
 
         /* TABLAS RESPONSIVAS */
-        .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+        .table-responsive { overflow-x: auto; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 2px 10px rgba(0,0,0,0.01); }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 0.8em; color: var(--text-muted); font-weight: 600; }
-        td { padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 0.9em; }
-        .btn-table { border: 1px solid var(--border-color); background: #f8f9fa; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-right: 4px;}
-        .btn-table:hover { background: #eaeded; }
-        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 0.9em; background: #f8f9fa; padding: 10px; border-radius: 8px; }
-        .btn-page { background: #fff; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
+        th { background: #f5f5f7; padding: 14px; text-align: left; font-size: 0.75em; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1.5px solid var(--border-color); }
+        td { padding: 14px; border-bottom: 1px solid var(--border-color); font-size: 0.9em; background: var(--bg-card); }
+        tr:last-child td { border-bottom: none; }
+        .btn-table { 
+            border: 1px solid var(--border-color); 
+            background: #f5f5f7; 
+            padding: 6px 10px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            margin-right: 4px;
+            font-weight: 600;
+            transition: var(--transition-smooth);
+        }
+        .btn-table:hover { background: #e8e8ed; transform: translateY(-1px); }
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 0.9em; background: #f5f5f7; padding: 12px; border-radius: 12px; }
+        .btn-page { background: #fff; border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: var(--transition-smooth); }
+        .btn-page:hover:not(:disabled) { background: #f5f5f7; transform: translateY(-1px); }
+        .btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
 
         /* FILTROS */
-        .filters-container { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid var(--border-color); padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
-        .filters-container input, .filters-container select { flex: 0 0 auto; width: 150px; height: 36px; padding: 6px 10px; font-size: 13px; }
-        .btn-clear-filters { background: var(--bg-stat-red); color: white; border: none; border-radius: 6px; padding: 0 15px; cursor: pointer; height: 36px; font-weight: bold; flex: 0 0 auto; transition: 0.2s; white-space: nowrap; }
-        .btn-clear-filters:hover { opacity: 0.9; }
+        .filters-container { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f5f5f7; border-radius: 16px; border: 1px solid var(--border-color); scrollbar-width: none; }
+        .filters-container::-webkit-scrollbar { display: none; }
+        .filters-container input, .filters-container select { flex: 0 0 auto; width: 150px; height: 38px; padding: 6px 10px; font-size: 13px; }
+        .btn-clear-filters { background: var(--bg-stat-red); color: white; border: none; border-radius: 10px; padding: 0 16px; cursor: pointer; height: 38px; font-weight: 700; flex: 0 0 auto; transition: var(--transition-smooth); white-space: nowrap; }
+        .btn-clear-filters:hover { opacity: 0.9; transform: translateY(-1px); }
 
         /* RESPONSIVE */
-        .bottom-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start;}
+        .bottom-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start;}
         .action-buttons { display: flex; gap: 10px; margin-top: 20px; }
 
         @media (max-width: 850px) { 
             .bottom-layout { grid-template-columns: 1fr; display: flex; flex-direction: column; } 
-            .hero-summary { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; margin: 0 -20px 25px -20px; padding: 0 20px 10px 20px; -webkit-overflow-scrolling: touch; }
+            .hero-summary { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; margin: 0 -20px 25px -20px; padding: 0 20px 10px 20px; scrollbar-width: none; }
             .hero-summary::-webkit-scrollbar { display: none; }
-            .hero-card { flex: 0 0 92%; scroll-snap-align: center; padding: 20px; }
-            .hero-main-amount { font-size: 1.8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .hero-stat { padding: 12px 10px; }
-            .hero-stat-value { font-size: 0.7em; }
-            .tab-btn { font-size: 0.85em; padding: 10px 8px; }
-
+            .hero-card { flex: 0 0 88%; scroll-snap-align: center; padding: 22px; }
+            .hero-main-amount { font-size: 1.9em; }
+            
             .form-flex { flex-wrap: wrap; overflow-x: visible; }
             .full-width-mob { flex: 1 1 100% !important; min-width: 100% !important; }
-            .half-width-mob { flex: 1 1 45% !important; min-width: 45% !important; }
+            .half-width-mob { flex: 1 1 47% !important; min-width: 47% !important; }
             button.btn-primary { flex: 1 1 100% !important; min-width: 100% !important; }
             
             .action-buttons { flex-direction: column; }
         }
         
-        .budget-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 10px; background: #fff; }
-        .progress-container { background: #eee; border-radius: 4px; height: 8px; margin: 8px 0; overflow: hidden; }
-        .progress-bar { height: 100%; transition: width 0.3s; }
-        .projection-list { margin-top: 15px; font-size: 0.85em; background: #f8f9fa; padding: 10px; border-radius: 8px; }
-        .projection-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #ccc; align-items: center;}
-        .text-green { color: #2ecc71; font-weight: bold; }
-        .text-red { color: #e74c3c; font-weight: bold; }
+        /* METAS Y PRESUPUESTOS */
+        .budget-card { border: 1px solid var(--border-color); padding: 18px; border-radius: 16px; margin-bottom: 12px; background: #fff; transition: var(--transition-smooth); box-shadow: 0 2px 8px rgba(0,0,0,0.01); }
+        .budget-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+        .progress-container { background: #e8e8ed; border-radius: 6px; height: 10px; margin: 10px 0; overflow: hidden; }
+        .progress-bar { height: 100%; border-radius: 6px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .projection-list { margin-top: 15px; font-size: 0.85em; background: #f5f5f7; padding: 12px; border-radius: 14px; }
+        .projection-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,0.1); align-items: center;}
+        .projection-item:last-child { border-bottom: none; }
+        .text-green { color: var(--bg-stat-green); font-weight: 700; }
+        .text-red { color: var(--bg-stat-red); font-weight: 700; }
         .chart-wrapper { position: relative; height: 250px; width: 100%; margin-bottom: 10px; }
         
-        .sync-badge { font-size: 0.5em; padding: 4px 8px; border-radius: 12px; font-weight: bold; margin-left: 0; }
-        .sync-online { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .sync-offline { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        .sync-badge { font-size: 0.6em; padding: 6px 12px; border-radius: 20px; font-weight: 700; margin-left: 0; letter-spacing: normal; text-transform: none; }
+        .sync-online { background: #e2f1ff; color: var(--primary-btn); border: 1px solid rgba(0,113,227,0.15); }
+        .sync-offline { background: #ffebee; color: var(--bg-stat-red); border: 1px solid rgba(255,59,48,0.15); }
 
-        .fab-mic { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: var(--primary-btn); color: white; font-size: 26px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.25); cursor: pointer; z-index: 1000; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; }
-        .fab-mic:hover { transform: scale(1.05); }
+        /* BOTÓN DE DICTADO POR VOZ (🎤) */
+        .fab-mic { 
+            position: fixed; 
+            bottom: 30px; 
+            right: 30px; 
+            width: 56px; 
+            height: 56px; 
+            border-radius: 50%; 
+            background: var(--bg-hero-main); 
+            color: white; 
+            font-size: 24px; 
+            border: none; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15); 
+            cursor: pointer; 
+            z-index: 1000; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            transition: var(--transition-smooth); 
+        }
+        .fab-mic:hover { transform: scale(1.08) translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.25); }
+        .fab-mic:active { transform: scale(0.95); }
         .fab-mic.recording { background: var(--bg-stat-red); animation: pulse 1.5s infinite; }
         @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.7); }
-            70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(239, 83, 80, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 83, 80, 0); }
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(255, 59, 48, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
         }
     </style>
 </head>
 <body>
 
 <div id="auth-screen" class="auth-container hidden">
-    <h2>🔑 Acceso a MayuCash</h2>
+    <h2>☕️ Ingresa a MayuCash</h2>
+    <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;">Tu rincón financiero inteligente y amigable.</p>
     <form id="auth-form" class="auth-form" onsubmit="event.preventDefault(); window.loginUser();">
-        <input type="email" id="auth-email" placeholder="Correo Electrónico" required>
-        <input type="password" id="auth-password" placeholder="Contraseña" minlength="6" required>
+        <input type="email" id="auth-email" placeholder="Tu correo de siempre" required>
+        <input type="password" id="auth-password" placeholder="Tu clave secreta" minlength="6" required>
         <div class="auth-btn-group">
-            <button type="submit" class="btn-auth-main">Ingresar</button>
-            <button type="button" class="btn-secondary" onclick="window.registerUser()">Registrarse</button>
+            <button type="submit" class="btn-auth-main">Entrar a bordo</button>
+            <button type="button" class="btn-secondary" onclick="window.registerUser()">Registrarme</button>
         </div>
     </form>
 </div>
 
 <div id="onboarding-screen" class="auth-container hidden" style="max-width: 500px;">
-    <h2>🚀 ¡Te damos la bienvenida!</h2>
-    <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 25px; line-height: 1.4;">Configuremos tu entorno financiero. No te preocupes, podrás cambiar todo esto después.</p>
+    <h2>🚀 ¡Qué buena onda tenerte aquí!</h2>
+    <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 25px; line-height: 1.5;">Ordenemos un poco el mapa antes de empezar. No te estreses, después puedes cambiar lo que quieras.</p>
     
     <form id="onboarding-form" class="auth-form" onsubmit="event.preventDefault(); window.completeOnboarding();">
-        <label>¿Cómo usarás MayuCash?</label>
+        <label>¿A qué corresponden estos números?</label>
         <select id="ob-type" required>
-            <option value="Personales">Finanzas Personales</option>
-            <option value="Hogar">Finanzas del Hogar</option>
-            <option value="Negocio">Finanzas de Negocio</option>
+            <option value="Personales">Mis Finanzas Personales</option>
+            <option value="Hogar">Las Cuentas de la Casa</option>
+            <option value="Negocio">Los Números de mi Negocio</option>
         </select>
 
-        <label>Selecciona tus Monedas (Máx. 3)</label>
+        <label>¿Qué monedas manejas? (Elige máximo 3)</label>
         <select id="ob-currencies" multiple required style="height: 120px;" onchange="window.limitCurrencies(this, 'ob-curr-warning')">
             <option value="CLP" selected>CLP - Peso Chileno</option>
             <option value="USD" selected>USD - Dólar Estadounidense</option>
@@ -196,37 +414,37 @@
             <option value="USDT">USDT - Crypto (Tether)</option>
             <option value="BTC">BTC - Bitcoin</option>
         </select>
-        <small id="ob-curr-warning" style="color:var(--bg-stat-red); display:none; margin-top:-10px;">Solo puedes elegir un máximo de 3 monedas.</small>
+        <small id="ob-curr-warning" style="color:var(--bg-stat-red); display:none; margin-top:-10px; font-weight:bold;">¡Tranqui! Solo puedes elegir un máximo de 3 monedas simultáneas.</small>
 
         <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
-        <h4 style="margin: 0; text-align: center; color: var(--text-dark);">Crea tus 2 primeras cuentas</h4>
+        <h4 style="margin: 0; text-align: center; color: var(--text-dark); font-weight: 800; letter-spacing: -0.5px;">Crea tus dos primeras cuentas de base</h4>
         
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="ob-acc1-name" placeholder="Ej: Cuenta Principal" required style="flex:2">
+        <div style="display:flex; gap:12px;">
+            <input type="text" id="ob-acc1-name" placeholder="Ej: Mi Cuenta Corriente" required style="flex:2">
             <input type="number" id="ob-acc1-bal" placeholder="Saldo" required style="flex:1">
         </div>
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="ob-acc2-name" placeholder="Ej: Ahorros / Efectivo" required style="flex:2">
+        <div style="display:flex; gap:12px;">
+            <input type="text" id="ob-acc2-name" placeholder="Ej: Tarjeta o Efectivo" required style="flex:2">
             <input type="number" id="ob-acc2-bal" placeholder="Saldo" required style="flex:1">
         </div>
 
-        <button type="submit" class="btn-primary" style="margin-top: 15px; width: 100%;">¡Comenzar a usar la App!</button>
+        <button type="submit" class="btn-primary" style="margin-top: 15px; width: 100%; height: 46px;">¡Comenzar la aventura! 🚀</button>
     </form>
 </div>
 
 <div id="settings-modal" class="modal-overlay hidden">
     <div class="modal-content" style="max-height: 90vh; display: flex; flex-direction: column;">
-        <h3>⚙️ Configuración del Perfil</h3>
+        <h3>⚙️ Ajustes de MayuCash</h3>
         <form class="auth-form" onsubmit="event.preventDefault(); window.saveSettings();" style="overflow-y: auto; padding-right: 5px;">
             
-            <label>Tipo de Finanzas</label>
+            <label>Tipo de Entorno</label>
             <select id="set-type" required>
                 <option value="Personales">Personales</option>
                 <option value="Hogar">Hogar</option>
                 <option value="Negocio">Negocio</option>
             </select>
 
-            <label>Monedas Habilitadas (Máx. 3)</label>
+            <label>Monedas Permitidas (Máx. 3)</label>
             <select id="set-currencies" multiple required style="height: 100px;" onchange="window.limitCurrencies(this, 'set-curr-warning')">
                 <option value="CLP">CLP - Peso Chileno</option>
                 <option value="USD">USD - Dólar Estadounidense</option>
@@ -241,22 +459,22 @@
                 <option value="USDT">USDT - Crypto (Tether)</option>
                 <option value="BTC">BTC - Bitcoin</option>
             </select>
-            <small id="set-curr-warning" style="color:var(--bg-stat-red); display:none; margin-top:-10px;">Solo 3 monedas permitidas.</small>
+            <small id="set-curr-warning" style="color:var(--bg-stat-red); display:none; margin-top:-10px; font-weight:bold;">Máximo 3 monedas.</small>
 
-            <label>Cuenta Principal por Defecto</label>
+            <label>Tu Cuenta por Defecto</label>
             <select id="set-main-wallet" required></select>
 
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 5px 0;">
 
-            <label>Categorías de Gastos (Separadas por coma)</label>
-            <textarea id="set-cat-gastos" rows="3" required placeholder="Ej: Arriendo, Supermercado, Luz..."></textarea>
+            <label>Mis Categorías de Gasto (Sepáralas por coma)</label>
+            <textarea id="set-cat-gastos" rows="3" required placeholder="Ej: Comida, Arriendo, Luz..."></textarea>
 
-            <label>Categorías de Ingresos (Separadas por coma)</label>
-            <textarea id="set-cat-ingresos" rows="2" required placeholder="Ej: Salario, Venta..."></textarea>
+            <label>Mis Categorías de Ingreso (Sepáralas por coma)</label>
+            <textarea id="set-cat-ingresos" rows="2" required placeholder="Ej: Sueldo, Pitutos..."></textarea>
 
             <div class="auth-btn-group" style="margin-top: 10px;">
-                <button type="button" class="btn-secondary" onclick="window.closeSettings()">Cancelar</button>
-                <button type="submit" class="btn-auth-main">Guardar Cambios</button>
+                <button type="button" class="btn-secondary" onclick="window.closeSettings()">Volver</button>
+                <button type="submit" class="btn-auth-main">Guardar cambios</button>
             </div>
         </form>
     </div>
@@ -267,44 +485,51 @@
     <button id="fab-mic" class="fab-mic" onclick="window.toggleDictation()" title="Dictar Movimiento">🎤</button>
 
     <div class="header-flex">
-        <h2 class="header-title" style="display:flex; align-items:center; gap: 8px;">
-            📊 MayuCash 
-            <span id="app-profile-badge" style="font-size: 0.6em; color: var(--text-muted); font-weight: normal;"></span>
+        <h2 class="header-title">
+            ☕️ MayuCash 
+            <span id="app-profile-badge" style="font-size: 0.55em; color: var(--text-muted); font-weight: 600;"></span>
             <span id="sync-indicator" class="sync-badge sync-offline">Conectando...</span>
-            <button class="btn-icon" title="Configuración" onclick="window.openSettings()" style="padding: 4px 8px; font-size: 0.9em;">⚙️</button>
+            <button class="btn-icon" title="Configuración" onclick="window.openSettings()" style="padding: 6px 10px; font-size: 0.85em;">⚙️ Ajustes</button>
         </h2>
         <div class="controls-flex">
             <button id="privacy-toggle" class="btn-icon" title="Ocultar Montos" onclick="window.togglePrivacy()">👁️</button>
-            <div style="display:flex; gap:5px; flex-wrap: nowrap;">
+            <div style="display:flex; gap:6px; flex-wrap: nowrap;">
                 <select id="sel-month" onchange="window.updateUI()"></select>
                 <select id="sel-year" onchange="window.updateUI()"></select>
                 <button class="btn-icon" title="Cerrar Sesión" onclick="window.logoutUser()">🚪</button>
             </div>
         </div>
     </div>
-    
-    <div class="hero-summary" id="hero-cards-container">
+
+    <div class="ai-coach-card" id="ai-coach-card">
+        <div class="ai-avatar">💡</div>
+        <div class="ai-message">
+            <span class="ai-name">Mayu, tu partner</span>
+            <p class="ai-text" id="ai-coach-text">¡Hola! Deja que procese tus últimos movimientos para ver cómo viene la mano con tu bolsillo hoy...</p>
+        </div>
     </div>
+    
+    <div class="hero-summary" id="hero-cards-container"></div>
 
     <div class="section">
-        <h3 class="section-header">Tus Cuentas (Bancos / Billeteras / Crypto)</h3>
+        <h3 class="section-header">Mis Cuentas y Bolsillos (Mantén presionado para ordenar) 💳</h3>
         <div id="accounts-bar" class="accounts-bar"></div>
-        <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+        <div style="border-top: 1px solid var(--border-color); padding-top: 20px;">
             <form id="wallet-form" class="form-flex" onsubmit="event.preventDefault(); window.addWallet();">
-                <div class="form-group full-width-mob" style="flex: 2 1 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
-                <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
+                <div class="form-group full-width-mob" style="flex: 2 1 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Cuenta RUT, Ahorro..." required></div>
+                <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="number" id="new-wallet-balance" placeholder="Saldo actual" required></div>
                 <div class="form-group half-width-mob" style="flex: 1 1 80px;"><select id="new-wallet-currency"></select></div>
-                <button type="submit" class="btn-primary full-width-mob" style="flex: 1 1 100px;">Crear Cuenta</button>
+                <button type="submit" class="btn-primary full-width-mob" style="flex: 1 1 100px;">Crear cuenta</button>
             </form>
         </div>
     </div>
 
     <div class="section">
-        <h3 class="section-header">Registrar Movimiento</h3>
+        <h3 class="section-header">Oye, ¿qué pasó hoy? 💸</h3>
         
         <div class="tabs-container">
-            <button class="tab-btn active" onclick="window.switchTab('gasto')">📉 Gasto</button>
-            <button class="tab-btn" onclick="window.switchTab('ingreso')">📈 Ingreso</button>
+            <button class="tab-btn active" onclick="window.switchTab('gasto')">📉 Un Gasto</button>
+            <button class="tab-btn" onclick="window.switchTab('ingreso')">📈 Un Ingreso</button>
             <button class="tab-btn" onclick="window.switchTab('transferencia')">🔄 Transferencia</button>
         </div>
 
@@ -313,19 +538,19 @@
             <input type="hidden" id="type-select" value="gasto">
 
             <div class="form-group half-width-mob" style="flex: 1 1 120px;"><label>Monto</label><input type="number" id="amount" placeholder="0" required></div>
-            <div class="form-group full-width-mob" style="flex: 2 1 200px;"><label>Nota / Detalle</label><input type="text" id="desc" placeholder="Ej: Supermercado..." required></div>
+            <div class="form-group full-width-mob" style="flex: 2 1 200px;"><label>¿Qué fue?</label><input type="text" id="desc" placeholder="Ej: Almuerzo con amigos..." required></div>
             
             <div class="form-group half-width-mob" id="cat-group" style="flex: 2 1 150px;"><label>Categoría</label><select id="cat-select" required></select></div>
             
-            <div class="form-group half-width-mob" style="flex: 1 1 150px;"><label id="lbl-wallet-orig">En la Cuenta:</label><select id="wallet-select"></select></div>
+            <div class="form-group half-width-mob" style="flex: 1 1 150px;"><label id="lbl-wallet-orig">¿Con qué cuenta?</label><select id="wallet-select"></select></div>
             <div class="form-group half-width-mob hidden" id="dest-group" style="flex: 1 1 150px;"><label>Cuenta Destino:</label><select id="wallet-dest-select"></select></div>
             
-            <button type="submit" class="btn-primary full-width-mob" id="btn-save">Guardar Registro</button>
+            <button type="submit" class="btn-primary full-width-mob" id="btn-save">Registrar movimiento</button>
         </form>
     </div>
 
     <div class="section">
-        <h3 class="section-header">Historial de Movimientos</h3>
+        <h3 class="section-header">Tu bitácora de gastos 📜</h3>
         
         <div class="filters-container">
             <input type="text" id="filter-note" placeholder="🔍 Buscar por nota..." oninput="window.updateUI()">
@@ -344,75 +569,73 @@
 
         <div class="table-responsive">
             <table id="entries-table">
-                <thead><tr><th>Nota</th><th>Monto</th><th>Cat.</th><th>Cuenta</th><th>Tipo</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Detalle</th><th>Monto</th><th>Categoría</th><th>Bolsillo</th><th>Tipo</th><th>Acciones</th></tr></thead>
                 <tbody id="entries-body"></tbody>
             </table>
         </div>
         <div class="pagination" id="pagination-controls"></div>
     </div>
 
-    <!-- WORKSPACE TABS -->
-    <h4 style="margin: 25px 0 5px 0; color: var(--text-dark); font-weight: 700;">⚙️ Moneda del Entorno de Trabajo (Presupuesto y Proyección)</h4>
-    <div class="tabs-container" id="currency-workspace-tabs" style="margin-bottom: 20px;">
-    </div>
+    <h4 style="margin: 30px 0 10px 0; color: var(--text-dark); font-weight: 800; font-size: 1.1em; letter-spacing: -0.5px;">⚙️ Entorno de Trabajo (Moneda Activa)</h4>
+    <div class="tabs-container" id="currency-workspace-tabs" style="margin-bottom: 25px;"></div>
 
     <div class="bottom-layout">
         <div class="section" style="margin-bottom: 0;">
-            <h3 class="section-header">Metas y Presupuestos</h3>
+            <h3 class="section-header">Tus metas (¡vamos que se puede!) 🎯</h3>
             
             <form id="budget-form" onsubmit="event.preventDefault(); window.addBudget();" style="display: flex; flex-direction: column; width: 100%;">
                 <input type="hidden" id="budget-edit-idx" value="">
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; width: 100%;">
-                    <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="text" id="budget-name" placeholder="Ej: Tarjetas" required></div>
-                    <div class="form-group half-width-mob" style="flex: 1 1 100px;"><input type="number" id="budget-limit" placeholder="Monto Tope" required></div>
+                    <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="text" id="budget-name" placeholder="Ej: Salidas / Delivery" required></div>
+                    <div class="form-group half-width-mob" style="flex: 1 1 100px;"><input type="number" id="budget-limit" placeholder="Tope máximo" required></div>
                     <div class="form-group full-width-mob" style="flex: 2 1 200px;"><select id="budget-cats-multi" multiple style="height:80px;" required></select></div>
                 </div>
-                <button type="submit" id="btn-budget-save" class="btn-primary" style="width:100%; margin-top:10px;">Crear Meta</button>
+                <button type="submit" id="btn-budget-save" class="btn-primary" style="width:100%; margin-top:12px;">Crear meta de control</button>
             </form>
 
-            <div id="budget-list-container" style="margin-top: 15px;"></div>
+            <div id="budget-list-container" style="margin-top: 20px;"></div>
         </div>
 
         <div class="section" style="margin-bottom: 0;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 18px;">
-                <h3 class="section-header" style="border:none; padding:0; margin:0;">Predicción de Flujo</h3>
-                <select id="chart-type" onchange="window.updateUI()" style="height:32px; font-size:12px; padding:0 10px; width:auto; border-radius:6px; margin:0;">
-                    <option value="line">📈 Línea + Detalle</option>
-                    <option value="bar">📊 Barras (Interactivo)</option>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px;">
+                <h3 class="section-header" style="border:none; padding:0; margin:0;">Tu futuro financiero (sin presiones) 🔮</h3>
+                <select id="chart-type" onchange="window.updateUI()" style="height:34px; font-size:12px; padding:0 10px; width:auto; border-radius:10px; margin:0;">
+                    <option value="line">📈 Línea de tiempo</option>
+                    <option value="bar">📊 Barras interactivas</option>
                 </select>
             </div>
             
-            <p style="font-size: 0.8em; color: var(--text-muted); margin-top: 0; margin-bottom: 5px;">
-                Simulación inteligente: El sistema replica automáticamente tus costos fijos y calcula la línea base de tus gastos de consumo promediando tu historial.
+            <p style="font-size: 0.82em; color: var(--text-muted); margin-top: 0; margin-bottom: 15px; line-height: 1.45;">
+                <strong>Simulador inteligente:</strong> Cruzamos tus gastos habituales y fijos para calcular la tendencia de tus cuentas en los próximos 6 meses.
             </p>
             <div class="chart-wrapper">
                 <canvas id="projectionChart"></canvas>
             </div>
             <div id="projection-details" class="projection-list"></div>
 
-            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-top: 15px;">
-                <h4 style="margin: 0 0 10px 0; font-size: 0.9em; color: var(--text-dark);">🔮 Simulador de Eventos Futuros <span style="font-size:0.8em; color:var(--text-muted); font-weight:normal;">(No afecta saldo real)</span></h4>
+            <div style="background: var(--bg-body); border: 1.5px solid var(--border-color); border-radius: 16px; padding: 18px; margin-top: 20px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 0.95em; color: var(--text-dark); font-weight: 800;">🔮 Simulador de Eventos Futuros <span style="font-size:0.8em; color:var(--text-muted); font-weight:normal;">(Gasto virtual para pruebas)</span></h4>
                 <form id="sim-form" onsubmit="event.preventDefault(); window.addSimulation();" style="display: flex; flex-wrap: wrap; gap: 8px;">
                     <input type="hidden" id="sim-edit-id">
-                    <input type="text" id="sim-desc" placeholder="Ej: Viaje / Cyber" required style="flex: 2 1 120px; height: 34px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;">
-                    <input type="number" id="sim-amount" placeholder="Monto" required style="flex: 1 1 80px; height: 34px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;">
+                    <input type="text" id="sim-desc" placeholder="Ej: Viaje a la playa, Cyber..." required style="flex: 2 1 120px; height: 36px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 8px;">
+                    <input type="number" id="sim-amount" placeholder="Monto" required style="flex: 1 1 80px; height: 36px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 8px;">
                     
-                    <select id="sim-month" multiple required style="flex: 1 1 80px; height: 60px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;" title="Mantén pulsado Ctrl/Cmd para seleccionar varios">
-                        <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
-                        <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
-                        <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
-                        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                    <select id="sim-month" multiple required style="flex: 1 1 80px; height: 60px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 8px;" title="Mantén pulsado Ctrl/Cmd para seleccionar varios">
+                        <option value="1">Ene</option><option value="2">Feb</option><option value="3">Mar</option>
+                        <option value="4">Abr</option><option value="5">May</option><option value="6">Jun</option>
+                        <option value="7">Jul</option><option value="8">Ago</option><option value="9">Sep</option>
+                        <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
                     </select>
                     
-                    <select id="sim-wallet" required style="flex: 1 1 100px; height: 34px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;"></select>
-                    <button type="submit" id="btn-sim-save" class="btn-primary" style="height: 34px; padding: 0 15px; font-size: 12px; margin-top: 0; flex: 1 1 100%;">Añadir Gasto a la Proyección</button>
+                    <select id="sim-wallet" required style="flex: 1 1 100px; height: 36px; font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 8px;"></select>
+                    <button type="submit" id="btn-sim-save" class="btn-primary" style="height: 36px; padding: 0 15px; font-size: 12px; margin-top: 0; flex: 1 1 100%;">Inyectar a la proyección</button>
                 </form>
-                <div id="sim-list" style="margin-top: 10px; font-size: 0.85em;"></div>
+                <div id="sim-list" style="margin-top: 12px; font-size: 0.85em;"></div>
             </div>
             
             <div class="action-buttons">
-                <button class="btn-primary" onclick="window.exportData()" style="flex:1; background: #607d8b; padding:0 10px; font-size:0.9em;">💾 Exportar a PC</button>
-                <button class="btn-primary" onclick="document.getElementById('importFile').click()" style="flex:1; background: #607d8b; padding:0 10px; font-size:0.9em;">📂 Cargar Archivo</button>
+                <button class="btn-primary" onclick="window.exportData()" style="flex:1; background: #607d8b; padding:0 10px; font-size:0.9em; box-shadow:none;">💾 Respaldar Datos</button>
+                <button class="btn-primary" onclick="document.getElementById('importFile').click()" style="flex:1; background: #607d8b; padding:0 10px; font-size:0.9em; box-shadow:none;">📂 Importar Datos</button>
                 <input type="file" id="importFile" onchange="window.importData(event)" style="display: none;">
             </div>
         </div>
@@ -508,6 +731,66 @@
         });
     }
 
+    // Actualización de la lógica del Asistente de IA ("Mayu Coach") basada en datos reales de la UI
+    function updateAICoachCard(mInc, mExp, budgets, activeCurrency) {
+        const coachText = document.getElementById('ai-coach-text');
+        const coachAvatar = document.querySelector('.ai-avatar');
+        if (!coachText) return;
+
+        const monthlyIncome = mInc[activeCurrency] || 0;
+        const monthlyExpenses = mExp[activeCurrency] || 0;
+
+        // Caso 1: Sin datos todavía
+        if (monthlyIncome === 0 && monthlyExpenses === 0) {
+            coachAvatar.innerText = "👋";
+            coachText.innerHTML = `¡Hola! Bienvenido a bordo. Tu billetera se ve muy limpia. Registra tu primer movimiento abajo usando el formulario o tocando el micrófono 🎤 para empezar a armar la estrategia financiera del mes.`;
+            return;
+        }
+
+        // Caso 2: Se superó algún presupuesto (Meta)
+        let primaryBudgetExceeded = null;
+        if (budgets && budgets.length > 0) {
+            for (let b of budgets) {
+                const budgetCurrency = b.currency || db.profile.currencies[0];
+                if (budgetCurrency === activeCurrency) {
+                    let currentCatExpense = b.categories.reduce((sum, cat) => {
+                        let data = db.months[`${selYear.value}-${selMonth.value}`];
+                        let expensesInCat = data ? data.entries.filter(e => e.type === 'gasto' && e.category === cat && e.currency === activeCurrency) : [];
+                        return sum + expensesInCat.reduce((s, entry) => s + entry.amount, 0);
+                    }, 0);
+                    if (currentCatExpense > b.limit) {
+                        primaryBudgetExceeded = b;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (primaryBudgetExceeded) {
+            coachAvatar.innerText = "🚨";
+            coachText.innerHTML = `¡Alerta de amigo! Nos pasamos del presupuesto que definimos para la meta <strong>"${primaryBudgetExceeded.name}"</strong>. No pasa nada, a cualquiera le ocurre un gusto de más. Pero apretemos un poco el cinturón en estos días para compensar, ¿te parece?`;
+            return;
+        }
+
+        // Caso 3: Gastos superando el 85% de los ingresos
+        if (monthlyIncome > 0 && monthlyExpenses >= (monthlyIncome * 0.85)) {
+            coachAvatar.innerText = "🫣";
+            coachText.innerHTML = `Oye... vi tus números de este mes y estamos gastando casi todo lo que entra (${Math.round((monthlyExpenses/monthlyIncome)*100)}% de los ingresos). Respira hondo, analicemos juntos la bitácora para ver qué gastos prescindibles podemos congelar para no llegar con el agua al cuello a fin de mes.`;
+            return;
+        }
+
+        // Caso 4: Excelente nivel de ahorro (Gastos por debajo del 50% con ingresos considerables)
+        if (monthlyIncome > 0 && monthlyExpenses <= (monthlyIncome * 0.5)) {
+            coachAvatar.innerText = "🌟";
+            coachText.innerHTML = `¡Te pasaste! Estás manejando tus finanzas como un profesional de alto rendimiento. Estás ahorrando más de la mitad de tus ingresos este mes. ¿Y si aprovechamos de mover una parte a inversión o planificamos un gustito controlado? ¡Te lo mereces!`;
+            return;
+        }
+
+        // Caso 5: Todo marcha normal y equilibrado
+        coachAvatar.innerText = "😎";
+        coachText.innerHTML = `Todo fluye de maravilla por acá. Tu saldo del mes se mantiene en orden y las metas están en rango seguro. Sigue registrando tus gastos diarios para mantener el timón firme. ¡Estás haciendo un tremendo trabajo!`;
+    }
+
     window.toggleDictation = function() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return alert("Tu navegador no soporta el dictado por voz. Intenta desde Google Chrome o Safari.");
@@ -518,7 +801,16 @@
         recognition.maxAlternatives = 1;
 
         const fab = document.getElementById('fab-mic');
-        recognition.onstart = function() { fab.classList.add('recording'); };
+        const coachText = document.getElementById('ai-coach-text');
+        const coachAvatar = document.querySelector('.ai-avatar');
+
+        recognition.onstart = function() { 
+            fab.classList.add('recording'); 
+            if (coachText) {
+                coachAvatar.innerText = "👂";
+                coachText.innerHTML = `<i>Te estoy escuchando fuerte y claro... Dime algo como: "Gasté 15000 pesos en supermercado" o "Luz 25000 pesos con Cuenta RUT"</i>`;
+            }
+        };
 
         recognition.onresult = function(event) {
             let transcript = event.results[0][0].transcript.toLowerCase();
@@ -563,6 +855,11 @@
                 if(optionExists) catSelect.value = catValue;
                 document.getElementById('desc').value = descValue;
                 document.getElementById('finance-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                if (coachText) {
+                    coachAvatar.innerText = "✍️";
+                    coachText.innerHTML = `¡Listo! Capturé tu frase: <strong>"${transcript}"</strong>. Ya completé el formulario con el monto de $${amount.toLocaleString()} y la categoría sugerida. ¡Dale al botón para guardar!`;
+                }
             }, 100);
         };
 
@@ -571,7 +868,9 @@
             if(event.error !== 'no-speech') alert("Error al escuchar. Da permisos de micrófono al navegador.");
         };
 
-        recognition.onend = function() { fab.classList.remove('recording'); };
+        recognition.onend = function() { 
+            fab.classList.remove('recording'); 
+        };
         recognition.start();
     };
 
@@ -704,7 +1003,7 @@
         const isTrf = type === 'transferencia';
         
         document.getElementById('dest-group').classList.toggle('hidden', !isTrf);
-        document.getElementById('lbl-wallet-orig').innerText = isTrf ? "Cuenta Origen:" : "En la Cuenta:";
+        document.getElementById('lbl-wallet-orig').innerText = isTrf ? "Bolsillo de Origen:" : "¿Con qué cuenta?";
         
         window.populateCategories();
     };
@@ -819,7 +1118,7 @@
         const curr = document.getElementById('new-wallet-currency').value;
 
         if(!name) return;
-        if(db.wallets.find(w => w.name.toLowerCase() === name.toLowerCase())) return alert(`La cuenta "${name}" ya existe.`);
+        if(db.wallets.find(w => w.name.toLowerCase() === name.toLowerCase())) return alert(`El bolsillo "${name}" ya lo creaste.`);
 
         db.wallets.push({ name, currency: curr });
         if (!db.profile.mainWallet) db.profile.mainWallet = name;
@@ -930,7 +1229,7 @@
             
             document.getElementById('sim-form').reset();
             document.getElementById('sim-edit-id').value = '';
-            document.getElementById('btn-sim-save').innerText = 'Añadir Gasto a la Proyección';
+            document.getElementById('btn-sim-save').innerText = 'Inyectar a la proyección';
             await window.saveDataCloud();
         }
     };
@@ -967,9 +1266,9 @@
         Object.values(db.months).forEach(m => {
             if (m.entries && m.entries.some(e => (e.wallet === name || e.walletDest === name) && e.category !== 'Saldo Inicial')) hasMovements = true;
         });
-        if (hasMovements) { alert("Esta cuenta tiene registros asociados. Elimínalos primero."); return; }
+        if (hasMovements) { alert("Esta cuenta tiene registros reales cargados. Sácalos primero."); return; }
         
-        if(confirm(`¿Eliminar la cuenta "${name}"?`)) { 
+        if(confirm(`¿Eliminar el bolsillo "${name}" de tu lista?`)) { 
             db.wallets = db.wallets.filter(w => w.name !== name); 
             Object.keys(db.months).forEach(k => {
                 if(db.months[k].entries) db.months[k].entries = db.months[k].entries.filter(e => !(e.wallet === name && e.category === 'Saldo Inicial'));
@@ -999,7 +1298,7 @@
     };
 
     window.deleteEntry = async function(id) { 
-        if(confirm('¿Eliminar registro?')) { 
+        if(confirm('¿Eliminar este registro del mes?')) { 
             const key = `${selYear.value}-${selMonth.value}`; 
             db.months[key].entries = db.months[key].entries.filter(e => e.id !== id); 
             await window.saveDataCloud(); 
@@ -1007,7 +1306,7 @@
     };
 
     window.deleteBudget = async function(idx) { 
-        if(confirm('¿Eliminar meta?')) { 
+        if(confirm('¿Eliminar esta meta de control?')) { 
             const key = `${selYear.value}-${selMonth.value}`; 
             db.months[key].budgets.splice(idx, 1); 
             await window.saveDataCloud(); 
@@ -1050,8 +1349,8 @@
                 if(db.profile && !db.profile.catIngresos) db.profile.catIngresos = [...defaultCatIngresos];
 
                 await window.saveDataCloud(); 
-                alert("¡Datos cargados y subidos a la nube!"); 
-            } catch(err) { alert("Error al leer el archivo."); }
+                alert("¡Listo! Datos importados con éxito a la nube."); 
+            } catch(err) { alert("El archivo de respaldo no es válido."); }
         };
         if(event.target.files[0]) reader.readAsText(event.target.files[0]);
     };
@@ -1098,7 +1397,7 @@
                     if(!db.profile.mainWallet && db.wallets.length > 0) db.profile.mainWallet = db.wallets[0].name;
 
                     localStorage.setItem('mayucash_local_fallback', JSON.stringify(db));
-                    document.getElementById('sync-indicator').innerText = "✅ Sincronizado";
+                    document.getElementById('sync-indicator').innerText = "✅ Al día";
                     document.getElementById('sync-indicator').className = "sync-badge sync-online";
                     
                     cleanGhostEntries(); 
@@ -1110,7 +1409,7 @@
                 document.getElementById("onboarding-screen").classList.remove("hidden");
             }
         }, (error) => {
-            document.getElementById('sync-indicator').innerText = "⚠️ Modo Local";
+            document.getElementById('sync-indicator').innerText = "⚠️ Modo sin conexión";
             document.getElementById('sync-indicator').className = "sync-badge sync-offline";
             console.error("Fallo Sincronización:", error);
         });
@@ -1248,13 +1547,13 @@
 
             body.innerHTML += `<tr>
                 <td>
-                    <div style="font-weight: 500; color: var(--text-dark);">${e.desc}</div>
+                    <div style="font-weight: 600; color: var(--text-dark);">${e.desc}</div>
                     <div style="font-size: 0.75em; color: #95a5a6; margin-top: 3px; font-weight: normal;">${formattedDate}</div>
                 </td>
                 <td class="${color}"><b>${window.formatAmount(e.amount, e.currency)}</b></td>
-                <td>${e.category}</td>
-                <td>${route}</td>
-                <td>${e.type.toUpperCase()}</td>
+                <td><span style="background:#e8e8ed; padding:3px 8px; border-radius:6px; font-size:0.85em; font-weight:600;">${e.category}</span></td>
+                <td style="color:var(--text-muted); font-size:0.85em;">${route}</td>
+                <td><span style="font-size: 0.8em; font-weight:bold; color: ${e.type === 'ingreso' ? 'var(--bg-stat-green)' : (e.type === 'gasto' ? 'var(--bg-stat-red)' : 'var(--primary-btn)')}">${e.type.toUpperCase()}</span></td>
                 <td><button type="button" class="btn-table" onclick="window.editEntry(${e.id})">✏️</button><button type="button" class="btn-table" onclick="window.deleteEntry(${e.id})" style="color:var(--bg-stat-red)">✕</button></td>
             </tr>`;
         });
@@ -1277,26 +1576,28 @@
             let perc = Math.min((real / b.limit) * 100, 100);
             let realPerc = (real / b.limit) * 100;
             
-            // MODIFICACIÓN UX: Lógica de colores adaptada a las nuevas alertas de gasto excesivo
             let barColor = 'var(--bg-stat-green)'; 
-            if (realPerc >= 151) { barColor = 'var(--bg-stat-purple)'; }
+            if (realPerc >= 150) { barColor = 'var(--bg-stat-purple)'; }
             else if (realPerc >= 100) { barColor = 'var(--bg-stat-red)'; } 
             else if (realPerc >= 85) { barColor = 'var(--bg-stat-yellow)'; }
 
             bList.innerHTML += `
                 <div class="budget-card">
-                    <strong>${b.name}</strong>
+                    <strong style="font-size:1em; letter-spacing:-0.3px;">🎯 ${b.name}</strong>
                     <div style="float:right; display:flex; gap:8px;">
                         <button type="button" onclick="window.editBudget(${idx})" style="border:none; background:none; color:var(--text-muted); cursor:pointer; font-size:1.1em;">✏️</button>
                         <button type="button" onclick="window.deleteBudget(${idx})" style="border:none; background:none; color:var(--bg-stat-red); cursor:pointer; font-size:1.1em;">✕</button>
                     </div>
                     <div class="progress-container"><div class="progress-bar" style="width:${perc}%; background:${barColor}"></div></div>
                     <div style="display:flex; justify-content:space-between; font-size:0.85em;">
-                        <span>Gastado: <b style="color:${realPerc >= 100 ? (realPerc >= 151 ? 'var(--bg-stat-purple)' : 'var(--bg-stat-red)') : 'inherit'}">${window.formatAmount(real, activeWorkspaceCurrency)}</b></span>
+                        <span>Gastado: <b style="color:${realPerc >= 100 ? (realPerc >= 150 ? 'var(--bg-stat-purple)' : 'var(--bg-stat-red)') : 'inherit'}">${window.formatAmount(real, activeWorkspaceCurrency)}</b></span>
                         <span>Tope: ${window.formatAmount(b.limit, activeWorkspaceCurrency)}</span>
                     </div>
                 </div>`;
         });
+
+        // Actualización activa del motor del Mayu Coach conversacional
+        updateAICoachCard(mInc, mExp, data.budgets, activeWorkspaceCurrency);
 
         window.updateMultiAccountProjection(walletTotals, key);
     };
@@ -1385,7 +1686,7 @@
         }
 
         const datasets = [];
-        const chartColors = ['#1a2a6c', '#0F9D58', '#E67E22', '#8e44ad', '#16a085', '#c0392b', '#2c3e50']; 
+        const chartColors = ['#0071e3', '#34c759', '#af52de', '#ffcc00', '#ff453a', '#5856d6', '#1d1d1f']; 
         const chartType = document.getElementById('chart-type') ? document.getElementById('chart-type').value : 'line';
         
         const detailDiv = document.getElementById('projection-details');
@@ -1396,21 +1697,21 @@
             datasets.push({ label: `${w.name} (${w.currency})`, data: dataPts, borderColor: chartColors[index % chartColors.length], backgroundColor: chartColors[index % chartColors.length], fill: false, tension: 0.3 });
             
             if(chartType === 'line') {
-                if (index === 0) detailDiv.innerHTML = '<h5 style="margin: 0 0 10px 0; color: var(--text-dark);">Saldo proyectado a fin de mes:</h5>';
+                if (index === 0) detailDiv.innerHTML = '<h5 style="margin: 0 0 12px 0; color: var(--text-dark); font-weight: 800; font-size:0.95em;">Así se verán tus ahorros los próximos meses:</h5>';
                 const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
                 let html = `<div class="projection-item" style="flex-direction:column; align-items:flex-start; border:none; padding:0; margin-bottom:15px;">`;
-                html += `<strong style="font-size:0.9em; color:var(--text-dark); margin-bottom:5px;">🏦 ${w.name}</strong>`;
-                html += `<div style="display:flex; gap:8px; overflow-x:auto; width:100%; padding-bottom:8px; -webkit-overflow-scrolling: touch;">`;
+                html += `<strong style="font-size:0.85em; color:var(--text-dark); margin-bottom:6px; font-weight: 700;">🏦 ${w.name}</strong>`;
+                html += `<div style="display:flex; gap:10px; overflow-x:auto; width:100%; padding-bottom:8px; scrollbar-width: none;">`;
                 
                 for(let m = 1; m <= 6; m++) {
                     let currentSimMonth = startMonth + m;
                     if (currentSimMonth > 12) currentSimMonth -= 12;
                     let mName = monthNames[currentSimMonth - 1];
                     let amt = window.formatAmount(dataPts[m], w.currency);
-                    let colorClass = dataPts[m] < 0 ? 'color: var(--bg-stat-red);' : 'color: var(--text-dark);';
-                    html += `<div style="background:#fff; border:1px solid var(--border-color); padding:6px 10px; border-radius:6px; min-width:90px; text-align:center; flex-shrink:0;">
-                                <div style="font-size:0.75em; color:var(--text-muted); text-transform:uppercase;">${mName}</div>
-                                <div style="font-weight:bold; font-size:0.9em; ${colorClass}">${amt}</div>
+                    let colorStyle = dataPts[m] < 0 ? 'color: var(--bg-stat-red);' : 'color: var(--text-dark);';
+                    html += `<div style="background:#fff; border:1px solid var(--border-color); padding:8px 12px; border-radius:10px; min-width:95px; text-align:center; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.01);">
+                                <div style="font-size:0.7em; color:var(--text-muted); text-transform:uppercase; font-weight:700;">${mName}</div>
+                                <div style="font-weight:800; font-size:0.85em; margin-top:2px; ${colorStyle}">${amt}</div>
                              </div>`;
                 }
                 html += `</div></div>`;
@@ -1426,7 +1727,7 @@
             data: { labels: labels, datasets: datasets }, 
             options: { 
                 maintainAspectRatio: false, 
-                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10} } } }, 
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: {size: 10, weight: '600'} } } }, 
                 scales: { x: { grid: { display: false } } },
                 interaction: { mode: 'index', intersect: false }
             } 
