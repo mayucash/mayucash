@@ -114,6 +114,9 @@
         .bottom-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start;}
         .action-buttons { display: flex; gap: 10px; margin-top: 20px; }
 
+        /* REGISTRO RÁPIDO FLEX */
+        .quick-entry-form { display: flex; gap: 10px; margin-top: 8px; align-items: flex-end; }
+
         @media (max-width: 850px) { 
             .bottom-layout { grid-template-columns: 1fr; display: flex; flex-direction: column; } 
             .hero-summary { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; margin: 0 -20px 25px -20px; padding: 0 20px 10px 20px; -webkit-overflow-scrolling: touch; }
@@ -130,6 +133,10 @@
             button.btn-primary { flex: 1 1 100% !important; min-width: 100% !important; }
             
             .action-buttons { flex-direction: column; }
+
+            /* Cambios específicos para Registro Rápido en Móvil */
+            .quick-entry-form { flex-direction: column; align-items: stretch; }
+            .quick-entry-form button { width: 100%; height: 42px; margin-top: 5px; }
         }
         
         .budget-card { border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 10px; background: #fff; }
@@ -287,29 +294,16 @@
     </div>
 
     <div class="section">
-        <h3 class="section-header">Tus Cuentas (Bancos / Billeteras / Crypto)</h3>
-        <div id="accounts-bar" class="accounts-bar"></div>
-        <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
-            <form id="wallet-form" class="form-flex" onsubmit="event.preventDefault(); window.addWallet();">
-                <div class="form-group full-width-mob" style="flex: 2 1 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
-                <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
-                <div class="form-group half-width-mob" style="flex: 1 1 80px;"><select id="new-wallet-currency"></select></div>
-                <button type="submit" class="btn-primary full-width-mob" style="flex: 1 1 100px;">Crear Cuenta</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="section">
         <h3 class="section-header">Registrar Movimiento</h3>
 
         <!-- INICIO DE REGISTRO RÁPIDO INTELIGENTE TIPO WHATSAPP -->
         <div style="margin-bottom: 15px; padding: 15px; background: #e8f0fe; border-radius: 8px; border: 1px dashed #1a73e8;">
             <label style="font-size: 0.85em; font-weight: bold; color: #1a73e8;">⚡ Registro Inteligente</label>
-            <form onsubmit="event.preventDefault(); window.processQuickEntry();" style="display: flex; gap: 10px; margin-top: 8px;">
-                <input type="text" id="quick-input" placeholder="Ej: Traspaso de Scotiabank a MACH 5000" required style="flex: 1; border: 1px solid #1a73e8; padding: 10px; border-radius: 8px; font-size: 14px;">
-                <button type="submit" class="btn-primary" style="background: #1a73e8; padding: 0 15px;">Enviar</button>
+            <form class="quick-entry-form" onsubmit="event.preventDefault(); window.processQuickEntry();">
+                <textarea id="quick-input" placeholder="Ej: Traspaso de Scotiabank a MACH 5000&#10;O pega una lista:&#10;pan 1000&#10;queso 2000" required style="flex: 1; border: 1px solid #1a73e8; padding: 10px; border-radius: 8px; font-size: 14px; min-height: 50px; resize: vertical; font-family: inherit; line-height: 1.4;"></textarea>
+                <button type="submit" class="btn-primary" style="background: #1a73e8; padding: 0 20px; align-self: stretch;">Enviar</button>
             </form>
-            <small style="color: #5f6368; font-size: 0.75em; display: block; margin-top: 5px;">Reconoce montos con "mil" o "k" (ej: 470mil). Nombra tus bancos para auto-seleccionarlos.</small>
+            <small style="color: #5f6368; font-size: 0.75em; display: block; margin-top: 5px;">Reconoce montos con "mil" o "k" (ej: 470mil). Nombra tus bancos para auto-seleccionarlos. ¡Puedes pegar listas!</small>
         </div>
         <!-- FIN DE REGISTRO RÁPIDO -->
 
@@ -333,6 +327,19 @@
             
             <button type="submit" class="btn-primary full-width-mob" id="btn-save">Guardar Registro</button>
         </form>
+    </div>
+
+    <div class="section">
+        <h3 class="section-header">Tus Cuentas (Bancos / Billeteras / Crypto)</h3>
+        <div id="accounts-bar" class="accounts-bar"></div>
+        <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <form id="wallet-form" class="form-flex" onsubmit="event.preventDefault(); window.addWallet();">
+                <div class="form-group full-width-mob" style="flex: 2 1 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
+                <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
+                <div class="form-group half-width-mob" style="flex: 1 1 80px;"><select id="new-wallet-currency"></select></div>
+                <button type="submit" class="btn-primary full-width-mob" style="flex: 1 1 100px;">Crear Cuenta</button>
+            </form>
+        </div>
     </div>
 
     <div class="section">
@@ -1463,175 +1470,189 @@
         });
     };
     
-    // Función de registro rápido INTELIGENTE 
+    // Función de registro rápido INTELIGENTE (Soporta múltiples líneas)
     window.processQuickEntry = async function() {
-        let text = document.getElementById('quick-input').value.trim();
-        if(!text) return;
+        let fullText = document.getElementById('quick-input').value.trim();
+        if(!fullText) return;
 
-        // Limpiar puntos de formato (ej: 3.000 -> 3000)
-        let cleanTextForAmount = text.replace(/\./g, ''); 
+        // Separar el texto por saltos de línea y procesar cada línea que no esté vacía
+        let lines = fullText.split('\n').filter(line => line.trim() !== '');
         
-        // Buscar el monto numérico y opcionalmente la palabra "mil" o "k"
-        let amountMatch = cleanTextForAmount.match(/(\d+)\s*(mil|k)?\b/i);
-        
-        if (!amountMatch) {
-            alert("Por favor, incluye el monto numérico. (Ej: Pañales 3000 o 3mil)");
-            return;
-        }
+        let successCount = 0;
+        let lastError = '';
 
-        let amount = parseFloat(amountMatch[1]);
-        if (amountMatch[2]) {
-            let suffix = amountMatch[2].toLowerCase();
-            if (suffix === 'mil' || suffix === 'k') {
-                amount *= 1000;
-            }
-        }
-
-        // Extraer la descripción (quitamos el texto exacto del monto para no dejar basuritas como el "mil")
-        let matchOriginalText = text.match(new RegExp(amountMatch[1] + '\\.?\\s*(mil|k)?\\b', 'i')); 
-        let descToClean = text;
-        if(matchOriginalText) {
-            descToClean = text.replace(matchOriginalText[0], '');
-        } else {
-            descToClean = text.replace(/[0-9\$\.]/g, ''); // fallback
-        }
-        
-        let desc = descToClean.replace(/\$/g, '').trim();
-        if (!desc) desc = "Registro rápido";
-
-        const lowerText = text.toLowerCase();
-        
-        // 1. DETERMINAR EL TIPO (Gasto, Ingreso o Transferencia)
-        let typeValue = 'gasto';
-        let catValue = 'Otro';
-
-        if (lowerText.includes('sueldo') || lowerText.includes('salario') || lowerText.includes('ingreso') || lowerText.includes('pago') || lowerText.includes('venta')) {
-            typeValue = 'ingreso';
-            catValue = 'Salario Principal';
-            if (lowerText.includes('venta')) catValue = 'Ventas Extras';
-        } else if (lowerText.includes('transferí') || lowerText.includes('transferencia') || lowerText.includes('traspaso') || lowerText.includes('envié')) {
-            typeValue = 'transferencia';
-            catValue = 'Movimiento Interno';
-        } else {
-            // AUTO-CATEGORIZACIÓN INTELIGENTE (Para Gastos)
-            if (lowerText.includes('super') || lowerText.includes('comida') || lowerText.includes('agua') || lowerText.includes('pañal') || lowerText.includes('pan')) catValue = 'Supermercado';
-            else if (lowerText.includes('uber') || lowerText.includes('pasaje') || lowerText.includes('metro') || lowerText.includes('bencina')) catValue = 'Transporte';
-            else if (lowerText.includes('luz')) catValue = 'Luz';
-            else if (lowerText.includes('gas')) catValue = 'Gas';
-            else if (lowerText.includes('internet') || lowerText.includes('wifi') || lowerText.includes('vtr')) catValue = 'Internet';
-            else if (lowerText.includes('celu') || lowerText.includes('plan')) catValue = 'Móvil';
-            else if (lowerText.includes('arriendo')) catValue = 'Arriendo';
-            else if (lowerText.includes('cine') || lowerText.includes('cerveza') || lowerText.includes('salida') || lowerText.includes('sushi')) catValue = 'Salidas/Ocio';
-            else if (lowerText.includes('mascota') || lowerText.includes('perro') || lowerText.includes('gato') || lowerText.includes('vet')) catValue = 'Mascotas';
-            else if (lowerText.includes('farmacia') || lowerText.includes('doctor') || lowerText.includes('remedio') || lowerText.includes('operacion') || lowerText.includes('mamá')) catValue = 'Salud';
-        }
-
-        // 2. DETERMINAR CUENTAS BANCARIAS
-        let defaultWallet = (db.profile && db.profile.mainWallet) ? db.profile.mainWallet : (db.wallets.length > 0 ? db.wallets[0].name : '');
-        let walletValue = defaultWallet;
-        let walletDestValue = '';
-
-        // Buscar qué cuentas se mencionaron en el texto y ordenarlas por aparición
-        let mentionedWallets = [];
-        db.wallets.forEach(w => {
-            let wName = w.name.toLowerCase();
-            let idx = lowerText.indexOf(wName);
-            // También revisar si se omitió una letra al final (ej: "scotiaban" vs "scotiabank")
-            let partialWName = wName.length > 5 ? wName.substring(0, wName.length - 1) : wName;
+        for (let i = 0; i < lines.length; i++) {
+            let text = lines[i].trim();
             
-            if (idx !== -1) {
-                mentionedWallets.push({ name: w.name, index: idx, matchStr: wName });
-            } else if (wName.length > 5 && lowerText.includes(partialWName)) {
-                mentionedWallets.push({ name: w.name, index: lowerText.indexOf(partialWName), matchStr: partialWName });
+            // Limpiar puntos de formato (ej: 3.000 -> 3000)
+            let cleanTextForAmount = text.replace(/\./g, ''); 
+            
+            // Buscar el monto numérico y opcionalmente la palabra "mil" o "k"
+            let amountMatch = cleanTextForAmount.match(/(\d+)\s*(mil|k)?\b/i);
+            
+            if (!amountMatch) {
+                lastError = `No se encontró monto en: "${text}"`;
+                continue; // Salta esta línea si no tiene monto
             }
-        });
 
-        // Ordenar según aparezcan en el texto
-        mentionedWallets.sort((a, b) => a.index - b.index);
+            let amount = parseFloat(amountMatch[1]);
+            if (amountMatch[2]) {
+                let suffix = amountMatch[2].toLowerCase();
+                if (suffix === 'mil' || suffix === 'k') {
+                    amount *= 1000;
+                }
+            }
 
-        if (typeValue === 'transferencia') {
-            if (mentionedWallets.length >= 2) {
-                // Ejem: "de Scotiabank a Mercado Pago"
-                walletValue = mentionedWallets[0].name;
-                walletDestValue = mentionedWallets[1].name;
-            } else if (mentionedWallets.length === 1) {
-                // Hay 1 sola cuenta mencionada. Verificamos si tiene "a " o "hacia " antes
-                let accountIdx = mentionedWallets[0].index;
-                let textBefore = lowerText.substring(0, accountIdx);
-                if (textBefore.endsWith('a ') || textBefore.endsWith('hacia ') || textBefore.endsWith('para ')) {
-                    walletDestValue = mentionedWallets[0].name;
-                    // El origen queda como el default.
-                    if (walletValue === walletDestValue && db.wallets.length > 1) {
-                        walletValue = db.wallets.find(w => w.name !== walletDestValue).name;
+            // Extraer la descripción
+            let matchOriginalText = text.match(new RegExp(amountMatch[1] + '\\.?\\s*(mil|k)?\\b', 'i')); 
+            let descToClean = text;
+            if(matchOriginalText) {
+                descToClean = text.replace(matchOriginalText[0], '');
+            } else {
+                descToClean = text.replace(/[0-9\$\.]/g, ''); // fallback
+            }
+            
+            let desc = descToClean.replace(/\$/g, '').trim();
+            if (!desc) desc = "Registro rápido";
+
+            const lowerText = text.toLowerCase();
+            
+            // 1. DETERMINAR EL TIPO (Gasto, Ingreso o Transferencia)
+            let typeValue = 'gasto';
+            let catValue = 'Otro';
+
+            if (lowerText.includes('sueldo') || lowerText.includes('salario') || lowerText.includes('ingreso') || lowerText.includes('pago') || lowerText.includes('venta')) {
+                typeValue = 'ingreso';
+                catValue = 'Salario Principal';
+                if (lowerText.includes('venta')) catValue = 'Ventas Extras';
+            } else if (lowerText.includes('transferí') || lowerText.includes('transferencia') || lowerText.includes('traspaso') || lowerText.includes('envié')) {
+                typeValue = 'transferencia';
+                catValue = 'Movimiento Interno';
+            } else {
+                // AUTO-CATEGORIZACIÓN INTELIGENTE (Para Gastos)
+                if (lowerText.includes('super') || lowerText.includes('comida') || lowerText.includes('agua') || lowerText.includes('pañal') || lowerText.includes('pan') || lowerText.includes('queso')) catValue = 'Supermercado';
+                else if (lowerText.includes('uber') || lowerText.includes('pasaje') || lowerText.includes('metro') || lowerText.includes('bencina')) catValue = 'Transporte';
+                else if (lowerText.includes('luz')) catValue = 'Luz';
+                else if (lowerText.includes('gas')) catValue = 'Gas';
+                else if (lowerText.includes('internet') || lowerText.includes('wifi') || lowerText.includes('vtr')) catValue = 'Internet';
+                else if (lowerText.includes('celu') || lowerText.includes('plan')) catValue = 'Móvil';
+                else if (lowerText.includes('arriendo')) catValue = 'Arriendo';
+                else if (lowerText.includes('cine') || lowerText.includes('cerveza') || lowerText.includes('salida') || lowerText.includes('sushi')) catValue = 'Salidas/Ocio';
+                else if (lowerText.includes('mascota') || lowerText.includes('perro') || lowerText.includes('gato') || lowerText.includes('vet')) catValue = 'Mascotas';
+                else if (lowerText.includes('farmacia') || lowerText.includes('doctor') || lowerText.includes('remedio') || lowerText.includes('operacion') || lowerText.includes('mamá')) catValue = 'Salud';
+            }
+
+            // 2. DETERMINAR CUENTAS BANCARIAS
+            let defaultWallet = (db.profile && db.profile.mainWallet) ? db.profile.mainWallet : (db.wallets.length > 0 ? db.wallets[0].name : '');
+            let walletValue = defaultWallet;
+            let walletDestValue = '';
+
+            // Buscar qué cuentas se mencionaron en el texto y ordenarlas por aparición
+            let mentionedWallets = [];
+            db.wallets.forEach(w => {
+                let wName = w.name.toLowerCase();
+                let idx = lowerText.indexOf(wName);
+                // También revisar si se omitió una letra al final (ej: "scotiaban" vs "scotiabank")
+                let partialWName = wName.length > 5 ? wName.substring(0, wName.length - 1) : wName;
+                
+                if (idx !== -1) {
+                    mentionedWallets.push({ name: w.name, index: idx, matchStr: wName });
+                } else if (wName.length > 5 && lowerText.includes(partialWName)) {
+                    mentionedWallets.push({ name: w.name, index: lowerText.indexOf(partialWName), matchStr: partialWName });
+                }
+            });
+
+            // Ordenar según aparezcan en el texto
+            mentionedWallets.sort((a, b) => a.index - b.index);
+
+            if (typeValue === 'transferencia') {
+                if (mentionedWallets.length >= 2) {
+                    walletValue = mentionedWallets[0].name;
+                    walletDestValue = mentionedWallets[1].name;
+                } else if (mentionedWallets.length === 1) {
+                    let accountIdx = mentionedWallets[0].index;
+                    let textBefore = lowerText.substring(0, accountIdx);
+                    if (textBefore.endsWith('a ') || textBefore.endsWith('hacia ') || textBefore.endsWith('para ')) {
+                        walletDestValue = mentionedWallets[0].name;
+                        if (walletValue === walletDestValue && db.wallets.length > 1) {
+                            walletValue = db.wallets.find(w => w.name !== walletDestValue).name;
+                        }
+                    } else {
+                        walletValue = mentionedWallets[0].name;
+                        if (db.wallets.length > 1) {
+                            walletDestValue = db.wallets.find(w => w.name !== walletValue).name;
+                        }
                     }
                 } else {
-                    walletValue = mentionedWallets[0].name;
-                    // Destino default
-                    if (db.wallets.length > 1) {
-                        walletDestValue = db.wallets.find(w => w.name !== walletValue).name;
-                    }
+                     if (db.wallets.length > 1) {
+                         walletDestValue = db.wallets.find(w => w.name !== walletValue).name;
+                     }
                 }
             } else {
-                 if (db.wallets.length > 1) {
-                     walletDestValue = db.wallets.find(w => w.name !== walletValue).name;
-                 }
+                if (mentionedWallets.length > 0) {
+                    walletValue = mentionedWallets[0].name;
+                }
             }
-        } else {
-            // Ingreso o Gasto: si se menciona una cuenta, úsala como cuenta principal
-            if (mentionedWallets.length > 0) {
-                walletValue = mentionedWallets[0].name;
+
+            // Limpiar el nombre de la cuenta de la descripción
+            mentionedWallets.forEach(mw => {
+                let regexStr = '\\b' + mw.matchStr + '\\b';
+                try {
+                    desc = desc.replace(new RegExp(regexStr, 'gi'), '');
+                } catch(e) {
+                    desc = desc.replace(mw.matchStr, ''); 
+                }
+            });
+            
+            // Limpiar palabras de conexión que quedan colgando
+            desc = desc.replace(/\b(a|de|desde|hacia|para)\b/gi, '').replace(/\s+/g, ' ').trim();
+            if(!desc) desc = "Registro rápido";
+
+            // Capitalizar la nota
+            desc = desc.charAt(0).toUpperCase() + desc.slice(1);
+
+            const activeWallet = db.wallets.find(w => w.name === walletValue);
+            const inferredCurrency = activeWallet ? activeWallet.currency : (db.profile.currencies[0] || 'CLP');
+
+            // 3. GUARDAR EN BASE DE DATOS
+            const key = `${selYear.value}-${selMonth.value}`;
+            initMonthData(key);
+
+            const entry = { 
+                id: Date.now() + i, // Sumamos 'i' para asegurar IDs únicos al procesar una lista rápido
+                desc: desc, 
+                amount: amount, 
+                type: typeValue, 
+                wallet: walletValue, 
+                walletDest: walletDestValue, 
+                category: catValue, 
+                freq: 'ocasional', 
+                currency: inferredCurrency
+            };
+
+            db.months[key].entries.push(entry);
+            successCount++;
+        } // Fin del bucle for
+
+        if (successCount > 0) {
+            // Feedback Visual Silencioso (Sin Alert)
+            const quickInput = document.getElementById('quick-input');
+            quickInput.value = '';
+            
+            let originalPlaceholder = quickInput.placeholder;
+            quickInput.placeholder = successCount > 1 ? `¡${successCount} registros guardados! ✅` : '¡Guardado con éxito! ✅';
+            setTimeout(() => {
+                quickInput.placeholder = originalPlaceholder;
+            }, 2500);
+
+            await window.saveDataCloud(); 
+            
+            if (lastError && successCount < lines.length) {
+                alert(`Se guardaron ${successCount} registros, pero hubo un error en una línea: ${lastError}`);
             }
+        } else if (lastError) {
+            alert(lastError);
         }
-
-        // Limpiar el nombre de la cuenta de la descripción
-        mentionedWallets.forEach(mw => {
-            let regexStr = '\\b' + mw.matchStr + '\\b';
-            try {
-                desc = desc.replace(new RegExp(regexStr, 'gi'), '');
-            } catch(e) {
-                desc = desc.replace(mw.matchStr, ''); 
-            }
-        });
-        
-        // Limpiar palabras de conexión ("a", "de", "hacia") que quedan colgando
-        desc = desc.replace(/\b(a|de|desde|hacia|para)\b/gi, '').replace(/\s+/g, ' ').trim();
-        if(!desc) desc = "Registro rápido";
-
-        // Capitalizar la nota
-        desc = desc.charAt(0).toUpperCase() + desc.slice(1);
-
-        const activeWallet = db.wallets.find(w => w.name === walletValue);
-        const inferredCurrency = activeWallet ? activeWallet.currency : (db.profile.currencies[0] || 'CLP');
-
-        // 3. GUARDAR EN BASE DE DATOS
-        const key = `${selYear.value}-${selMonth.value}`;
-        initMonthData(key);
-
-        const entry = { 
-            id: Date.now(), 
-            desc: desc, 
-            amount: amount, 
-            type: typeValue, 
-            wallet: walletValue, 
-            walletDest: walletDestValue, 
-            category: catValue, 
-            freq: 'ocasional', 
-            currency: inferredCurrency
-        };
-
-        db.months[key].entries.push(entry);
-
-        // Feedback Visual Silencioso (Sin Alert)
-        const quickInput = document.getElementById('quick-input');
-        quickInput.value = '';
-        
-        let originalPlaceholder = quickInput.placeholder;
-        quickInput.placeholder = '¡Guardado con éxito! ✅';
-        setTimeout(() => {
-            quickInput.placeholder = originalPlaceholder;
-        }, 2000);
-
-        await window.saveDataCloud(); 
     };
 </script>
 </body>
