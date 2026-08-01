@@ -287,29 +287,16 @@
     </div>
 
     <div class="section">
-        <h3 class="section-header">Tus Cuentas (Bancos / Billeteras / Crypto)</h3>
-        <div id="accounts-bar" class="accounts-bar"></div>
-        <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
-            <form id="wallet-form" class="form-flex" onsubmit="event.preventDefault(); window.addWallet();">
-                <div class="form-group full-width-mob" style="flex: 2 1 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
-                <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
-                <div class="form-group half-width-mob" style="flex: 1 1 80px;"><select id="new-wallet-currency"></select></div>
-                <button type="submit" class="btn-primary full-width-mob" style="flex: 1 1 100px;">Crear Cuenta</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="section">
         <h3 class="section-header">Registrar Movimiento</h3>
 
-        <!-- INICIO DE REGISTRO RÁPIDO TIPO WHATSAPP -->
+        <!-- INICIO DE REGISTRO RÁPIDO INTELIGENTE TIPO WHATSAPP -->
         <div style="margin-bottom: 15px; padding: 15px; background: #e8f0fe; border-radius: 8px; border: 1px dashed #1a73e8;">
-            <label style="font-size: 0.85em; font-weight: bold; color: #1a73e8;">⚡ Registro Rápido (Tipo WhatsApp)</label>
+            <label style="font-size: 0.85em; font-weight: bold; color: #1a73e8;">⚡ Registro Inteligente</label>
             <form onsubmit="event.preventDefault(); window.processQuickEntry();" style="display: flex; gap: 10px; margin-top: 8px;">
-                <input type="text" id="quick-input" placeholder="Ej: Pañales 3000 o Agua 1000" required style="flex: 1; border: 1px solid #1a73e8; padding: 10px; border-radius: 8px; font-size: 14px;">
+                <input type="text" id="quick-input" placeholder="Ej: Pañales 3000, Sueldo 500000, Transferencia 2000" required style="flex: 1; border: 1px solid #1a73e8; padding: 10px; border-radius: 8px; font-size: 14px;">
                 <button type="submit" class="btn-primary" style="background: #1a73e8; padding: 0 15px;">Enviar</button>
             </form>
-            <small style="color: #5f6368; font-size: 0.75em; display: block; margin-top: 5px;">Escribe el nombre y el monto. Se guardará automáticamente como gasto.</small>
+            <small style="color: #5f6368; font-size: 0.75em; display: block; margin-top: 5px;">Detecta automáticamente si es Gasto, Ingreso o Transferencia y le asigna la categoría.</small>
         </div>
         <!-- FIN DE REGISTRO RÁPIDO -->
 
@@ -333,6 +320,19 @@
             
             <button type="submit" class="btn-primary full-width-mob" id="btn-save">Guardar Registro</button>
         </form>
+    </div>
+
+    <div class="section">
+        <h3 class="section-header">Tus Cuentas (Bancos / Billeteras / Crypto)</h3>
+        <div id="accounts-bar" class="accounts-bar"></div>
+        <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <form id="wallet-form" class="form-flex" onsubmit="event.preventDefault(); window.addWallet();">
+                <div class="form-group full-width-mob" style="flex: 2 1 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
+                <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
+                <div class="form-group half-width-mob" style="flex: 1 1 80px;"><select id="new-wallet-currency"></select></div>
+                <button type="submit" class="btn-primary full-width-mob" style="flex: 1 1 100px;">Crear Cuenta</button>
+            </form>
+        </div>
     </div>
 
     <div class="section">
@@ -1468,44 +1468,85 @@
         const text = document.getElementById('quick-input').value.trim();
         if(!text) return;
 
-        // Buscar los números en el texto (Monto)
-        const amountMatch = text.match(/\d+/);
+        // Limpiar puntos de formato (ej: 3.000 -> 3000) y sacar el monto numérico
+        const cleanText = text.replace(/\./g, ''); 
+        const amountMatch = cleanText.match(/\d+/);
+        
         if (!amountMatch) {
-            alert("Por favor, incluye el precio en tu mensaje. (Ej: Pañales 3000)");
+            alert("Por favor, incluye el precio o monto numérico en tu mensaje. (Ej: Pañales 3000)");
             return;
         }
 
         const amount = parseFloat(amountMatch[0]);
 
-        // Extraer la descripción (todo lo que no sea el número)
-        let desc = text.replace(/\d+/g, '').replace(/[\$]/g, '').trim();
-        if (!desc) desc = "Gasto rápido";
+        // Extraer la descripción (quitamos números y símbolos $)
+        let desc = text.replace(/[0-9\$\.]/g, '').trim();
+        if (!desc) desc = "Registro rápido";
         
         // Poner la primera letra en mayúscula
         desc = desc.charAt(0).toUpperCase() + desc.slice(1);
 
-        // Seleccionar cuenta principal y moneda
-        const key = `${selYear.value}-${selMonth.value}`;
-        initMonthData(key);
+        const lowerText = text.toLowerCase();
+        
+        // 1. DETERMINAR EL TIPO (Gasto, Ingreso o Transferencia)
+        let typeValue = 'gasto';
+        let catValue = 'Otro';
 
+        if (lowerText.includes('sueldo') || lowerText.includes('salario') || lowerText.includes('ingreso') || lowerText.includes('pago') || lowerText.includes('venta')) {
+            typeValue = 'ingreso';
+            catValue = 'Salario Principal';
+            if (lowerText.includes('venta')) catValue = 'Ventas Extras';
+        } else if (lowerText.includes('transferí') || lowerText.includes('transferencia') || lowerText.includes('traspaso') || lowerText.includes('envié')) {
+            typeValue = 'transferencia';
+            catValue = 'Movimiento Interno';
+        } else {
+            // 2. AUTO-CATEGORIZACIÓN INTELIGENTE (Para Gastos)
+            if (lowerText.includes('super') || lowerText.includes('comida') || lowerText.includes('agua') || lowerText.includes('pañal') || lowerText.includes('pan')) catValue = 'Supermercado';
+            else if (lowerText.includes('uber') || lowerText.includes('pasaje') || lowerText.includes('metro') || lowerText.includes('bencina')) catValue = 'Transporte';
+            else if (lowerText.includes('luz')) catValue = 'Luz';
+            else if (lowerText.includes('gas')) catValue = 'Gas';
+            else if (lowerText.includes('internet') || lowerText.includes('wifi') || lowerText.includes('vtr')) catValue = 'Internet';
+            else if (lowerText.includes('celu') || lowerText.includes('plan')) catValue = 'Móvil';
+            else if (lowerText.includes('arriendo')) catValue = 'Arriendo';
+            else if (lowerText.includes('cine') || lowerText.includes('cerveza') || lowerText.includes('salida') || lowerText.includes('sushi')) catValue = 'Salidas/Ocio';
+            else if (lowerText.includes('mascota') || lowerText.includes('perro') || lowerText.includes('gato') || lowerText.includes('vet')) catValue = 'Mascotas';
+            else if (lowerText.includes('farmacia') || lowerText.includes('doctor') || lowerText.includes('remedio')) catValue = 'Salud';
+        }
+
+        // 3. DETERMINAR CUENTA BANCARIA O BILLETERA
         let walletValue = (db.profile && db.profile.mainWallet) ? db.profile.mainWallet : (db.wallets.length > 0 ? db.wallets[0].name : '');
+        let walletDestValue = '';
+
+        // Buscar si nombraste alguna de tus cuentas (Ej: "Transferí a MACH 5000")
+        db.wallets.forEach(w => {
+            if (lowerText.includes(w.name.toLowerCase())) {
+                if (typeValue === 'transferencia' && w.name !== walletValue) {
+                    walletDestValue = w.name; // Cuenta destino detectada
+                } else if (typeValue !== 'transferencia') {
+                    walletValue = w.name; // Cambiar la cuenta de origen si es gasto/ingreso
+                }
+            }
+        });
+
+        // Asegurar cuenta destino si es transferencia y no se detectó
+        if (typeValue === 'transferencia' && !walletDestValue && db.wallets.length > 1) {
+            walletDestValue = db.wallets.find(w => w.name !== walletValue).name; 
+        }
+
         const activeWallet = db.wallets.find(w => w.name === walletValue);
         const inferredCurrency = activeWallet ? activeWallet.currency : (db.profile.currencies[0] || 'CLP');
 
-        // Auto-clasificación básica de categorías
-        let catValue = 'Otro';
-        const lowerText = desc.toLowerCase();
-        if (lowerText.includes('super') || lowerText.includes('comida') || lowerText.includes('agua') || lowerText.includes('pañal')) catValue = 'Supermercado';
-        if (lowerText.includes('uber') || lowerText.includes('pasaje') || lowerText.includes('metro')) catValue = 'Transporte';
+        // 4. GUARDAR EN BASE DE DATOS
+        const key = `${selYear.value}-${selMonth.value}`;
+        initMonthData(key);
 
-        // Crear y guardar el registro
         const entry = { 
             id: Date.now(), 
             desc: desc, 
             amount: amount, 
-            type: 'gasto', 
+            type: typeValue, 
             wallet: walletValue, 
-            walletDest: '', 
+            walletDest: walletDestValue, 
             category: catValue, 
             freq: 'ocasional', 
             currency: inferredCurrency
@@ -1513,9 +1554,12 @@
 
         db.months[key].entries.push(entry);
 
-        // Limpiar el campo y guardar en la nube
+        // Limpiar el campo y guardar
         document.getElementById('quick-input').value = '';
         await window.saveDataCloud(); 
+
+        // 5. AVISO VISUAL PARA CONFIRMAR QUE FUNCIONÓ PERFECTO
+        alert(`✅ Registrado exitosamente:\n\n• Tipo: ${typeValue.toUpperCase()}\n• Monto: $${amount}\n• Categoría: ${catValue}\n• Banco: ${walletValue}`);
     };
 </script>
 </body>
