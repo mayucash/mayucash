@@ -287,9 +287,22 @@
     </div>
 
     <div class="section">
+        <h3 class="section-header">Tus Cuentas (Bancos / Billeteras / Crypto)</h3>
+        <div id="accounts-bar" class="accounts-bar"></div>
+        <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <form id="wallet-form" class="form-flex" onsubmit="event.preventDefault(); window.addWallet();">
+                <div class="form-group full-width-mob" style="flex: 2 1 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
+                <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
+                <div class="form-group half-width-mob" style="flex: 1 1 80px;"><select id="new-wallet-currency"></select></div>
+                <button type="submit" class="btn-primary full-width-mob" style="flex: 1 1 100px;">Crear Cuenta</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="section">
         <h3 class="section-header">Registrar Movimiento</h3>
 
-        <!-- INICIO DE REGISTRO RÁPIDO INTELIGENTE TIPO WHATSAPP -->
+        <!-- REGISTRO RÁPIDO -->
         <div style="margin-bottom: 15px; padding: 15px; background: #e8f0fe; border-radius: 8px; border: 1px dashed #1a73e8;">
             <label style="font-size: 0.85em; font-weight: bold; color: #1a73e8;">⚡ Registro Inteligente</label>
             <form onsubmit="event.preventDefault(); window.processQuickEntry();" style="display: flex; gap: 10px; margin-top: 8px;">
@@ -320,19 +333,6 @@
             
             <button type="submit" class="btn-primary full-width-mob" id="btn-save">Guardar Registro</button>
         </form>
-    </div>
-
-    <div class="section">
-        <h3 class="section-header">Tus Cuentas (Bancos / Billeteras / Crypto)</h3>
-        <div id="accounts-bar" class="accounts-bar"></div>
-        <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
-            <form id="wallet-form" class="form-flex" onsubmit="event.preventDefault(); window.addWallet();">
-                <div class="form-group full-width-mob" style="flex: 2 1 200px;"><input type="text" id="new-wallet-name" placeholder="Ej: Scotiabank, MACH..." required></div>
-                <div class="form-group half-width-mob" style="flex: 1 1 120px;"><input type="number" id="new-wallet-balance" placeholder="Monto Inicial" required></div>
-                <div class="form-group half-width-mob" style="flex: 1 1 80px;"><select id="new-wallet-currency"></select></div>
-                <button type="submit" class="btn-primary full-width-mob" style="flex: 1 1 100px;">Crear Cuenta</button>
-            </form>
-        </div>
     </div>
 
     <div class="section">
